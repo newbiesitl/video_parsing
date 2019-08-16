@@ -1,72 +1,11 @@
 import os
-import requests
-import random
 
-SCRIPT_PATH = os.path.dirname(os.path.realpath(__file__))
-CACHE_DIR = os.path.join(SCRIPT_PATH, '..', 'cache')
-INDEX_FILE = 'index.txt'
-INDEX_URL = 'https://hiring.verkada.com/video/index.txt'
-PREFIX = 'https://hiring.verkada.com/video/'
-TS_URL = '...'
-PROJECT_ROOT = SCRIPT_PATH
-
-def get_cache_dir():
-    if not os.path.exists(CACHE_DIR):
-        os.makedirs(CACHE_DIR)
-
-    return CACHE_DIR
-
-
-def get_index_file(step_size=1, shuffle=True):
-    cache = get_cache_dir()
-    filename = os.path.join(cache, INDEX_FILE)
-    if not os.path.exists(filename):
-        download_file(INDEX_URL, filename)
-    ret = [line.strip() for line in open(filename)][::step_size]
-    if shuffle:
-        random.shuffle(ret)
-    return ret
-
-
-def get_image(timestamp):
-    '''
-    downloads a ts file and writes the first frame to the cache as a jpeg.
-
-    timestamp is an integer (seconds since unix epoch)
-    '''
-    file_url = INDEX_URL % (timestamp)
-    return file_url
-
-
-def download_file(url, filename):
-    '''
-    downloads a the contents of the provided url to a local file
-    '''
-    contents = requests.get(url).content
-    with open(filename, 'wb+') as f:
-        f.write(contents)
-
-def video_url(file_name):
-    return PREFIX+file_name
-
-
-def download_all_videos():
-    data_folder = os.path.join(PROJECT_ROOT, 'data')
-    file_list = get_index_file()
-    for this_file in file_list:
-        print(this_file)
-        file_name = this_file.split('/')[-1]
-        file_path = os.path.join(data_folder, file_name)
-        download_file(video_url(this_file), file_path)
-
-
-def image_denormalize(model_output):
-    return (model_output * 255).astype(np.uint8)
+from download_utils import download_file, get_index_file, video_url
 
 if __name__ == "__main__":
     # download_all_videos()
     import cv2
-    from global_config import frame_shape, attention_coor
+    from global_config import frame_shape, PROJECT_ROOT
     from model_factory.toy_cnn_ae import autoencoder, encoder
     import numpy as np
     from keras.models import load_model

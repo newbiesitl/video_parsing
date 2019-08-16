@@ -1,9 +1,9 @@
 import cv2
-from global_config import frame_shape
+from global_config import frame_shape, PROJECT_ROOT
 from model_factory.toy_cnn_ae import autoencoder, encoder
 import numpy as np
 import os
-from build_mvp_model import get_index_file, PROJECT_ROOT, download_file, video_url
+from download_utils import download_file, get_index_file, video_url
 from keras.models import load_model
 from matplotlib import pyplot as plt
 import sklearn
