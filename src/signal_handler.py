@@ -21,14 +21,12 @@ def get_frames():
     ae = load_model(AE_PATH)
     encoder = load_model(ENCODER_PATH)
     data_folder = os.path.join(PROJECT_ROOT, 'data')
-    file_list = get_index_file(step_size=30, shuffle=True)
+    file_list = get_index_file(step_size=500, shuffle=False)
     class_1_q = [0] * 200
     class_2_q = [0] * 200
     prev_frame_embedding = None
-    reference_frame = None
     knn = build_knn()
     for this_file_url in file_list:
-        print(this_file_url)
         file_name = this_file_url.split('/')[-1]
         file_path = os.path.join(data_folder, file_name)
         # continue
@@ -56,7 +54,7 @@ def get_frames():
                 img2[:, :, 0] = gray
                 img2[:, :, 1] = gray
                 img2[:, :, 2] = gray
-                # frame = img2
+                frame = img2
                 h, w = frame_shape
                 # y_sample_idx = np.random.randint(0, frame.shape[0] - h, sample_batch_size)
                 # x_sample_idx = np.random.randint(0, frame.shape[1] - w, sample_batch_size)
@@ -68,6 +66,7 @@ def get_frames():
                 ret = encoder.predict(np.array([cropped_frame]))[0]
                 pred = knn.predict([ret])[0].split('_')[0]
                 prob = knn.predict_proba([ret])[0]
+                print(this_file_url, pred)
                 recon = ae.predict(np.array([cropped_frame]))[0]
                 counter += 1
                 if prev_frame_embedding is not None:
@@ -98,11 +97,9 @@ def get_frames():
                     cv2.imshow('ts', data)
                     cv2.imshow('Live', cropped_frame)
                     cv2.imshow('Reconstruction', recon)
-                    cv2.imshow('reference', reference_frame)
                 if prev_frame_embedding is None:
                     # set first frame as reference
                     prev_frame_embedding = ret
-                    reference_frame = cropped_frame
 
             # Break the loop
             else:

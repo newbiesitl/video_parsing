@@ -43,7 +43,6 @@ def build_knn():
     from keras.models import load_model
     encoder = load_model(ENCODER_PATH)
     target_file_path_list = ['true_label_list.txt', 'false_label_list.txt']
-    label_to_idx = dict(zip(target_file_path_list, range(len(target_file_path_list))))
     X = []
     Y = []
     for target_file_path in target_file_path_list:
@@ -53,13 +52,19 @@ def build_knn():
             file_path = os.path.join(DATA_DIR, label_file)
             for frame in open_video(file_path):
                 # print(frame)
+                gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+                img2 = np.zeros_like(frame)
+                img2[:, :, 0] = gray
+                img2[:, :, 1] = gray
+                img2[:, :, 2] = gray
+                frame = img2
                 embed = encoder.predict(np.array([frame]))[0]
                 X.append(embed)
                 Y.append(target_file_path)
                 # cv2.imwrite(os.path.join(LABEL_FRAME_DIR, label_file+'.png'), frame)
                 # cv2.imshow('Frame_focus', frame)
                 break
-    knn = KNeighborsClassifier()
+    knn = KNeighborsClassifier(metric='cosine', n_neighbors=5)
     knn.fit(X, Y)
     return knn
 
