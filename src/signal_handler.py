@@ -1,5 +1,5 @@
 import cv2
-from global_config import frame_shape, PROJECT_ROOT
+from global_config import frame_shape, PROJECT_ROOT, ENCODER_PATH, AE_PATH
 from model_factory.toy_cnn_ae import autoencoder, encoder
 import numpy as np
 import os
@@ -8,6 +8,8 @@ from keras.models import load_model
 from matplotlib import pyplot as plt
 import sklearn
 from sklearn import metrics
+import matplotlib
+matplotlib.use('TkAgg')
 def get_frames():
     font = cv2.FONT_HERSHEY_SIMPLEX
     bottomLeftCornerOfText = (1, 30)
@@ -15,12 +17,10 @@ def get_frames():
     fontColor = (255, 255, 255)
     lineType = 2
     # download_all_videos()
-    model_name = 'version_1.m5'
-    encoder_name = 'version_1_encoder.m5'
-    ae = load_model(os.path.join(PROJECT_ROOT, 'models', model_name))
+    ae = load_model(AE_PATH)
+    encoder = load_model(ENCODER_PATH)
     data_folder = os.path.join(PROJECT_ROOT, 'data')
     file_list = get_index_file(step_size=30, shuffle=False)
-    encoder = load_model(os.path.join(PROJECT_ROOT, 'models', encoder_name))
     q = [0] * 200
     prev_frame_embedding = None
     reference_frame = None
