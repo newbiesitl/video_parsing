@@ -2,6 +2,8 @@ from global_config import LABEL_DIR, frame_shape, attention_coor, DATA_DIR, LABE
 import numpy as np
 import os, random
 import cv2
+from sklearn.neighbors.classification import KNeighborsClassifier
+
 def get_label_file_index(label_file_name, step_size=1, shuffle=True):
     filename = os.path.join(LABEL_DIR, label_file_name)
     ret = [line.strip() for line in open(filename)][::step_size]
@@ -25,7 +27,7 @@ def open_video(file_path, fps=1):
             continue
         if ret == True:
             # normalize frame value
-            # frame = frame.astype('float32') / 255
+            frame = frame.astype('float32') / 255
             h, w = frame_shape
             y, x = attention_coor
             cropped_frame = frame[y:y + h, x:x + w]
@@ -40,13 +42,25 @@ def open_video(file_path, fps=1):
 def build_knn():
     from keras.models import load_model
     encoder = load_model(ENCODER_PATH)
-    target_file_path = ['true_label_list.txt', 'false_label_list.txt'][0]
-    target_file_list = get_label_file_index(target_file_path)
-    # print(true_file_list)
-    for label_file in target_file_list:
-        file_path = os.path.join(DATA_DIR, label_file)
-        for frame in open_video(file_path):
-            # print(frame)
-            cv2.imwrite(os.path.join(LABEL_FRAME_DIR, label_file+'.png'), frame)
-            break
-            # cv2.imshow('Frame_focus', frame)
+    target_file_path_list = ['true_label_list.txt', 'false_label_list.txt']
+    label_to_idx = dict(zip(target_file_path_list, range(len(target_file_path_list))))
+    X = []
+    Y = []
+    for target_file_path in target_file_path_list:
+        target_file_list = get_label_file_index(target_file_path)
+        # print(true_file_list)
+        for label_file in target_file_list:
+            file_path = os.path.join(DATA_DIR, label_file)
+            for frame in open_video(file_path):
+                # print(frame)
+                embed = encoder.predict(np.array([frame]))[0]
+                X.append(embed)
+                Y.append(target_file_path)
+                # cv2.imwrite(os.path.join(LABEL_FRAME_DIR, label_file+'.png'), frame)
+                # cv2.imshow('Frame_focus', frame)
+                break
+    knn = KNeighborsClassifier()
+    knn.fit(X, Y)
+    return knn
+
+

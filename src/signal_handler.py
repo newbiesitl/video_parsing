@@ -9,6 +9,7 @@ from matplotlib import pyplot as plt
 import sklearn
 from sklearn import metrics
 import matplotlib
+from labels.label_creation_pipeline import build_knn
 matplotlib.use('TkAgg')
 def get_frames():
     font = cv2.FONT_HERSHEY_SIMPLEX
@@ -20,10 +21,12 @@ def get_frames():
     ae = load_model(AE_PATH)
     encoder = load_model(ENCODER_PATH)
     data_folder = os.path.join(PROJECT_ROOT, 'data')
-    file_list = get_index_file(step_size=30, shuffle=False)
-    q = [0] * 200
+    file_list = get_index_file(step_size=30, shuffle=True)
+    class_1_q = [0] * 200
+    class_2_q = [0] * 200
     prev_frame_embedding = None
     reference_frame = None
+    knn = build_knn()
     for this_file_url in file_list:
         print(this_file_url)
         file_name = this_file_url.split('/')[-1]
@@ -63,17 +66,19 @@ def get_frames():
                 x, y = 180, 180
                 cropped_frame = frame[y:y + h, x:x + w]
                 ret = encoder.predict(np.array([cropped_frame]))[0]
+                pred = knn.predict([ret])[0].split('_')[0]
+                prob = knn.predict_proba([ret])[0]
                 recon = ae.predict(np.array([cropped_frame]))[0]
                 counter += 1
                 if prev_frame_embedding is not None:
 
-                    diss = metrics.pairwise.euclidean_distances([ret], [prev_frame_embedding])
-                    q.pop(0)
-                    q.append(diss[0][0])
-
+                    class_1_q.pop(0)
+                    class_2_q.pop(0)
+                    class_1_q.append(prob[0])
+                    class_2_q.append(prob[1])
                     if cv2.waitKey(25) & 0xFF == ord('q'):
                         break
-                    cv2.putText(cropped_frame, str(diss[0][0]),
+                    cv2.putText(cropped_frame, pred,
                                 bottomLeftCornerOfText,
                                 font,
                                 fontScale,
@@ -82,7 +87,8 @@ def get_frames():
                                 )
                     fig = plt.figure()
                     plot = fig.add_subplot(111)
-                    plot.plot(q,)
+                    plot.plot(class_1_q,)
+                    plot.plot(class_2_q,)
                     fig.canvas.draw()
 
                     # Now we can save it to a numpy array.
