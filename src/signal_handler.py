@@ -19,7 +19,7 @@ def get_frames():
     encoder_name = 'version_1_encoder.m5'
     ae = load_model(os.path.join(PROJECT_ROOT, 'models', model_name))
     data_folder = os.path.join(PROJECT_ROOT, 'data')
-    file_list = get_index_file(step_size=30)
+    file_list = get_index_file(step_size=30, shuffle=False)
     encoder = load_model(os.path.join(PROJECT_ROOT, 'models', encoder_name))
     q = [0] * 200
     prev_frame_embedding = None
@@ -36,7 +36,6 @@ def get_frames():
         # Check if camera opened successfully
         if (cap.isOpened() == False):
             print("Error opening video stream or file")
-        buf = []
         frame_count = 0
         fps = 24
         # Read until video is completed
@@ -48,6 +47,13 @@ def get_frames():
             if frame_count % fps != 0:
                 continue
             if ret == True:
+                frame = frame.astype('float32') / 255
+                gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+                img2 = np.zeros_like(frame)
+                img2[:, :, 0] = gray
+                img2[:, :, 1] = gray
+                img2[:, :, 2] = gray
+                # frame = img2
                 h, w = frame_shape
                 # y_sample_idx = np.random.randint(0, frame.shape[0] - h, sample_batch_size)
                 # x_sample_idx = np.random.randint(0, frame.shape[1] - w, sample_batch_size)
@@ -57,7 +63,7 @@ def get_frames():
                 x, y = 180, 180
                 cropped_frame = frame[y:y + h, x:x + w]
                 ret = encoder.predict(np.array([cropped_frame]))[0]
-                recon = ae.predict(np.array([cropped_frame]))[0].astype(np.uint8)
+                recon = ae.predict(np.array([cropped_frame]))[0]
                 counter += 1
                 if prev_frame_embedding is not None:
 

@@ -33,7 +33,7 @@ x = UpSampling2D((2, 2))(x)
 decoded = Conv2D(3, (3, 3), activation='linear', padding='same')(x)
 
 autoencoder = Model(input_img, decoded)
-autoencoder.compile(optimizer='adam', loss='mean_squared_error')
+autoencoder.compile(optimizer='adam', loss='mean_absolute_error')
 encoder = Model(input_img, flattened)
 
 autoencoder.summary()

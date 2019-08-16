@@ -1,5 +1,6 @@
 import os
 import requests
+import random
 
 SCRIPT_PATH = os.path.dirname(os.path.realpath(__file__))
 CACHE_DIR = os.path.join(SCRIPT_PATH, '..', 'cache')
@@ -16,13 +17,15 @@ def get_cache_dir():
     return CACHE_DIR
 
 
-def get_index_file(step_size=1):
+def get_index_file(step_size=1, shuffle=True):
     cache = get_cache_dir()
     filename = os.path.join(cache, INDEX_FILE)
     if not os.path.exists(filename):
         download_file(INDEX_URL, filename)
-
-    return [line.strip() for line in open(filename)][::step_size]
+    ret = [line.strip() for line in open(filename)][::step_size]
+    if shuffle:
+        random.shuffle(ret)
+    return ret
 
 
 def get_image(timestamp):
@@ -56,10 +59,14 @@ def download_all_videos():
         file_path = os.path.join(data_folder, file_name)
         download_file(video_url(this_file), file_path)
 
+
+def image_denormalize(model_output):
+    return (model_output * 255).astype(np.uint8)
+
 if __name__ == "__main__":
     # download_all_videos()
     import cv2
-    from global_config import frame_shape
+    from global_config import frame_shape, attention_coor
     from model_factory.toy_cnn_ae import autoencoder, encoder
     import numpy as np
     from keras.models import load_model
@@ -67,9 +74,12 @@ if __name__ == "__main__":
     encoder_name = 'version_1_encoder.m5'
     sample_batch_size = 50
     data_folder = os.path.join(PROJECT_ROOT, 'data')
-    file_list = get_index_file()
+    file_list = get_index_file(step_size=10)
     encoder_path = os.path.join(PROJECT_ROOT, 'models', encoder_name)
     model_path = os.path.join(PROJECT_ROOT, 'models', model_name)
+
+    noise_factor = 0.3
+
     if os.path.exists(model_path):
         autoencoder = load_model(model_path)
     for this_file_url in file_list:
@@ -85,8 +95,9 @@ if __name__ == "__main__":
         if (cap.isOpened() == False):
             print("Error opening video stream or file")
         buf = []
+        noise_buf = []
         frame_count = 0
-        fps = 24
+        fps = 4
         # Read until video is completed
         while (cap.isOpened()):
             # Capture frame-by-frame
@@ -96,17 +107,23 @@ if __name__ == "__main__":
             if frame_count % fps != 0:
                 continue
             if ret == True:
+                # normalize frame value
+                frame = frame.astype('float32') / 255
                 h, w = frame_shape
                 y_sample_idx = np.random.randint(0, frame.shape[0]-h, sample_batch_size)
                 x_sample_idx = np.random.randint(0, frame.shape[1]-w, sample_batch_size)
                 unioned = zip(y_sample_idx, x_sample_idx)
+                # unioned = [attention_coor]
                 for coor in unioned:
                     y, x = coor
                     # x, y = 180, 180
                     cropped_frame = frame[y:y+h, x:x+w]
-                    # print(frame.shape)
+                    # add noise hmm
+                    noise_frame = cropped_frame + noise_factor * np.random.normal(loc=0.0, scale=1.0, size=cropped_frame.shape)
+                    recon = (autoencoder.predict(np.array([noise_frame]))[0])
                     # Display the resulting frame
                     buf.append(cropped_frame)
+                    noise_buf.append(noise_frame)
                     counter += 1
                     # print(counter)
                     if counter == sample_batch_size:
@@ -114,13 +131,24 @@ if __name__ == "__main__":
                     # Press Q on keyboard to  exit
                     if cv2.waitKey(25) & 0xFF == ord('q'):
                         break
-                cv2.imshow('Frame', frame)
+                    # print(cropped_frame)
+                    # print(noise_frame)
+                    # print(recon)
+
+                    cv2.imshow('Frame_focus', cropped_frame)
+                    cv2.imshow('Model input', noise_frame)
+                    cv2.imshow('noise reconstruction', recon)
+                    clean_input = (autoencoder.predict(np.array([cropped_frame]))[0])
+
+                    cv2.imshow('noise reconstruction clean input', clean_input)
+                    # cv2.imshow('Frame', frame)
 
             # Break the loop
             else:
                 break
         buf = np.array(buf)
-        autoencoder.fit(buf, buf, epochs=30, verbose=2, batch_size=32)
+        noise_buf = np.array(noise_buf)
+        autoencoder.fit(noise_buf, buf, epochs=10, verbose=2, batch_size=4)
         autoencoder.save(model_path)
         encoder.set_weights(autoencoder.get_weights())
         encoder.save(encoder_path)
