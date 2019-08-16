@@ -16,13 +16,13 @@ def get_cache_dir():
     return CACHE_DIR
 
 
-def get_index_file():
+def get_index_file(step_size=1):
     cache = get_cache_dir()
     filename = os.path.join(cache, INDEX_FILE)
     if not os.path.exists(filename):
         download_file(INDEX_URL, filename)
 
-    return [line.strip() for line in open(filename)]
+    return [line.strip() for line in open(filename)][::step_size]
 
 
 def get_image(timestamp):
@@ -60,12 +60,18 @@ if __name__ == "__main__":
     # download_all_videos()
     import cv2
     from global_config import frame_shape
-    from model_factory.toy_cnn_ae import autoencoder
+    from model_factory.toy_cnn_ae import autoencoder, encoder
     import numpy as np
-
-    sample_batch_size = 20
+    from keras.models import load_model
+    model_name = 'version_1.m5'
+    encoder_name = 'version_1_encoder.m5'
+    sample_batch_size = 50
     data_folder = os.path.join(PROJECT_ROOT, 'data')
     file_list = get_index_file()
+    encoder_path = os.path.join(PROJECT_ROOT, 'models', encoder_name)
+    model_path = os.path.join(PROJECT_ROOT, 'models', model_name)
+    if os.path.exists(model_path):
+        autoencoder = load_model(model_path)
     for this_file_url in file_list:
         print(this_file_url)
         file_name = this_file_url.split('/')[-1]
@@ -79,11 +85,16 @@ if __name__ == "__main__":
         if (cap.isOpened() == False):
             print("Error opening video stream or file")
         buf = []
+        frame_count = 0
+        fps = 24
         # Read until video is completed
         while (cap.isOpened()):
             # Capture frame-by-frame
             ret, frame = cap.read()
             counter = 0
+            frame_count += 1
+            if frame_count % fps != 0:
+                continue
             if ret == True:
                 h, w = frame_shape
                 y_sample_idx = np.random.randint(0, frame.shape[0]-h, sample_batch_size)
@@ -91,6 +102,7 @@ if __name__ == "__main__":
                 unioned = zip(y_sample_idx, x_sample_idx)
                 for coor in unioned:
                     y, x = coor
+                    # x, y = 180, 180
                     cropped_frame = frame[y:y+h, x:x+w]
                     # print(frame.shape)
                     # Display the resulting frame
@@ -108,4 +120,7 @@ if __name__ == "__main__":
             else:
                 break
         buf = np.array(buf)
-        autoencoder.fit(buf, buf, epochs=10)
+        autoencoder.fit(buf, buf, epochs=30, verbose=2, batch_size=32)
+        autoencoder.save(model_path)
+        encoder.set_weights(autoencoder.get_weights())
+        encoder.save(encoder_path)
