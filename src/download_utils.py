@@ -4,7 +4,7 @@ import random
 import numpy as np
 import requests
 
-from global_config import PROJECT_ROOT, CACHE_DIR, INDEX_FILE, INDEX_URL, PREFIX
+from global_config import PROJECT_ROOT, CACHE_DIR, INDEX_FILE, INDEX_URL, PREFIX, DATA_DIR
 
 def get_cache_dir():
     if not os.path.exists(CACHE_DIR):
@@ -53,6 +53,12 @@ def download_all_videos(*args):
         print(this_file, 'download finish')
 
 
+def download_file_given_file_name(file_name):
+    url = video_url(file_name)
+    contents = requests.get(url).content
+    file_path = os.path.join(DATA_DIR, file_name)
+    with open(file_path, 'wb+') as f:
+        f.write(contents)
 
 def download_file(url, filename):
     '''

@@ -6,7 +6,7 @@ from sklearn.neighbors import KNeighborsClassifier
 
 from download_utils import download_file, video_url
 from global_config import ENCODER_PATH, DATA_DIR
-from labels.label_creation_pipeline import get_label_file_index, open_video
+from data_utils import get_label_file_index, open_video
 
 
 def build_knn():

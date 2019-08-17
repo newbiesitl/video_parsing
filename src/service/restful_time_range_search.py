@@ -40,7 +40,7 @@ class ObjDetect(Resource):
     ''', parser=obj_detect_parser)
     def get(self):
         '''
-        Provide two time stamps and return boolean to indicate if objects in two time stamps are the same
+        Provide a time stamp (in seconds) to detect the object of given bounding box and time stamp
         :return:
         '''
         try:
