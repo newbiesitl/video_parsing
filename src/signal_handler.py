@@ -1,5 +1,5 @@
 import cv2
-from global_config import frame_shape, PROJECT_ROOT, ENCODER_PATH, AE_PATH
+from global_config import frame_shape, PROJECT_ROOT, ae, encoder
 from model_factory.toy_cnn_ae import autoencoder, encoder
 import numpy as np
 import os
@@ -9,7 +9,8 @@ from matplotlib import pyplot as plt
 import sklearn
 from sklearn import metrics
 import matplotlib
-from labels.label_creation_pipeline import build_knn
+from model_factory.knn_object_detection import build_knn
+
 matplotlib.use('TkAgg')
 def get_frames():
     font = cv2.FONT_HERSHEY_SIMPLEX
@@ -18,8 +19,6 @@ def get_frames():
     fontColor = (255, 255, 255)
     lineType = 2
     # download_all_videos()
-    ae = load_model(AE_PATH)
-    encoder = load_model(ENCODER_PATH)
     data_folder = os.path.join(PROJECT_ROOT, 'data')
     file_list = get_index_file(step_size=50, shuffle=True)
     class_1_q = [0] * 200

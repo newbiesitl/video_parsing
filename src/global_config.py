@@ -1,5 +1,5 @@
 import os
-
+from keras.models import load_model
 frame_shape = (80, 80)
 attention_coor = (180, 180)
 channels = 3
@@ -19,3 +19,6 @@ model_name = 'version_1.m5'
 encoder_name = 'version_1_encoder.m5'
 AE_PATH = os.path.join(MODEL_DIR, model_name)
 ENCODER_PATH = os.path.join(MODEL_DIR, encoder_name)
+
+ae = load_model(AE_PATH)
+encoder = load_model(ENCODER_PATH)
