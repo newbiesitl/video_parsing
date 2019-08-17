@@ -8,13 +8,44 @@ from flask_restplus import Api, Resource, fields
 # init app
 app = Flask(__name__)
 app.config.SWAGGER_UI_DOC_EXPANSION = 'full'
-blueprint = Blueprint('api', __name__, url_prefix='/ask')
+blueprint = Blueprint('api', __name__, url_prefix='/stream_util')
 api = Api(blueprint, version='1.0',title='Stream plus', description='Content indexing')
 app.register_blueprint(blueprint)
-ns = api.namespace('v1', description='Parking lock')
+ns = api.namespace('v1', description='Content parsing node')
 
 
-detect_car_parser = api.parser()
-detect_car_parser.add_argument('algorithm', type=str, choices=['topic_prediction', 'popularity_prediction'], help='Reload labels', location='form')
-detect_car_parser.add_argument('normalized hot news threshold', type=float, choices=[0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9], help='Reload labels', location='form')
-detect_car_parser.add_argument('normalized breaking news threshold', type=float, choices=[0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9], help='Reload labels', location='form')
+obj_detect_parser = api.parser()
+obj_detect_parser.add_argument('target object (default car)', type=str, choices=['car',], help='type of object to detect', location='form')
+obj_detect_parser.add_argument('time stamp', type=int, help='time stamp of video', location='form')
+obj_detect_parser.add_argument('x', type=int, help='Reload labels', location='form')
+obj_detect_parser.add_argument('y', type=int,
+                               help='Reload labels', location='form')
+obj_detect_parser.add_argument('width', type=int, choices=[80], help='width of input image', location='form')
+obj_detect_parser.add_argument('height', type=int, choices=[80], help='height of input image', location='form')
+
+
+@ns.route('/ask/contain')
+class ObjDetect(Resource):
+    @ns.doc(description='''
+    Current detection only support one size image
+    ( 80 * 80 )
+    ''', parser=obj_detect_parser)
+    def get(self):
+        '''
+        Provide two time stamps and return boolean to indicate if objects in two time stamps are the same
+        :return:
+        '''
+        try:
+            payload = obj_detect_parser.parse_args()
+            target_object = payload.get('target_object', 'car')
+            time_stamp = payload.get('time stamp', 0)
+        except ValueError as e:
+            return make_response(
+                jsonify(
+                    {
+                        'status': 'error',
+                        'details': str(e),
+                    }
+                ),
+                403
+            )
