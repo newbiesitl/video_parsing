@@ -21,7 +21,7 @@ def get_frames():
     ae = load_model(AE_PATH)
     encoder = load_model(ENCODER_PATH)
     data_folder = os.path.join(PROJECT_ROOT, 'data')
-    file_list = get_index_file(step_size=50, shuffle=False)
+    file_list = get_index_file(step_size=50, shuffle=True)
     class_1_q = [0] * 200
     class_2_q = [0] * 200
     prev_frame_embedding = None
