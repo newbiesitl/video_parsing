@@ -59,7 +59,7 @@ if __name__ == "__main__":
                     cropped_frame = frame[y:y+h, x:x+w]
                     # add noise hmm
                     noise_frame = cropped_frame + noise_factor * np.random.normal(loc=0.0, scale=1.0, size=cropped_frame.shape)
-                    recon = (autoencoder.predict(np.array([noise_frame]))[0])
+                    # recon = (autoencoder.predict(np.array([noise_frame]))[0])
                     # Display the resulting frame
                     buf.append(cropped_frame)
                     noise_buf.append(noise_frame)
@@ -74,12 +74,11 @@ if __name__ == "__main__":
                     # print(noise_frame)
                     # print(recon)
 
-                    cv2.imshow('Frame_focus', cropped_frame)
-                    cv2.imshow('Model input', noise_frame)
-                    cv2.imshow('noise reconstruction', recon)
-                    clean_input = (autoencoder.predict(np.array([cropped_frame]))[0])
-
-                    cv2.imshow('noise reconstruction clean input', clean_input)
+                    # cv2.imshow('Frame_focus', cropped_frame)
+                    # cv2.imshow('Model input', noise_frame)
+                    # cv2.imshow('noise reconstruction', recon)
+                    # clean_input = (autoencoder.predict(np.array([cropped_frame]))[0])
+                    # cv2.imshow('noise reconstruction clean input', clean_input)
                     # cv2.imshow('Frame', frame)
 
             # Break the loop
@@ -87,7 +86,7 @@ if __name__ == "__main__":
                 break
         buf = np.array(buf)
         noise_buf = np.array(noise_buf)
-        autoencoder.fit(noise_buf, buf, epochs=10, verbose=2, batch_size=4)
+        autoencoder.fit(noise_buf, buf, epochs=10, verbose=2, batch_size=32)
         autoencoder.save(model_path)
         encoder.set_weights(autoencoder.get_weights())
         encoder.save(encoder_path)

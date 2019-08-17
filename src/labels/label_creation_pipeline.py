@@ -1,4 +1,5 @@
 from global_config import LABEL_DIR, frame_shape, attention_coor, DATA_DIR, LABEL_FRAME_DIR, ENCODER_PATH
+from download_utils import download_file, video_url
 import numpy as np
 import os, random
 import cv2
@@ -50,6 +51,9 @@ def build_knn():
         # print(true_file_list)
         for label_file in target_file_list:
             file_path = os.path.join(DATA_DIR, label_file)
+            if not os.path.exists(file_path):
+                download_file(video_url(label_file), file_path)
+
             for frame in open_video(file_path):
                 # print(frame)
                 gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)

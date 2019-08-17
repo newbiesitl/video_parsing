@@ -5,11 +5,11 @@ from keras import backend as K
 from src.global_config import input_shape
 
 input_img = Input(shape=input_shape)  # adapt this if using `channels_first` image data format
-n_features = 32
-x = Conv2D(64, (3, 3), activation='relu', padding='same')(input_img)
+n_features = 64
+x = Conv2D(128, (3, 3), activation='relu', padding='same')(input_img)
 x = MaxPooling2D((2, 2), padding='same')(x)
 x = BatchNormalization()(x)
-x = Conv2D(32, (3, 3), activation='relu', padding='same')(x)
+x = Conv2D(n_features, (3, 3), activation='relu', padding='same')(x)
 x = MaxPooling2D((2, 2), padding='same')(x)
 x = BatchNormalization()(x)
 x = Conv2D(n_features, (3, 3), activation='relu', padding='same')(x)
@@ -25,10 +25,10 @@ x = BatchNormalization()(reshaped_2d)
 x = Conv2D(n_features, (3, 3), activation='relu', padding='same')(x)
 x = UpSampling2D((2, 2))(x)
 x = BatchNormalization()(x)
-x = Conv2D(32, (3, 3), activation='relu', padding='same')(x)
+x = Conv2D(n_features, (3, 3), activation='relu', padding='same')(x)
 x = UpSampling2D((2, 2))(x)
 x = BatchNormalization()(x)
-x = Conv2D(64, (3, 3), activation='relu', padding='same')(x)
+x = Conv2D(128, (3, 3), activation='relu', padding='same')(x)
 x = UpSampling2D((2, 2))(x)
 decoded = Conv2D(3, (3, 3), activation='linear', padding='same')(x)
 
