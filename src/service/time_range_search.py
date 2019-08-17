@@ -1,6 +1,8 @@
 from flask import Flask, jsonify, make_response, Blueprint
 from flask_restplus import Api, Resource, fields
 from model_factory.knn_object_detection import  build_knn
+from download_utils import get_index_file
+
 
 
 

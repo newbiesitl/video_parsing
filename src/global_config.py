@@ -20,5 +20,8 @@ encoder_name = 'version_1_encoder.m5'
 AE_PATH = os.path.join(MODEL_DIR, model_name)
 ENCODER_PATH = os.path.join(MODEL_DIR, encoder_name)
 
+FIRST_TS = 1538076003
+LAST_TS = 1539326113
+
 ae = load_model(AE_PATH)
 encoder = load_model(ENCODER_PATH)
