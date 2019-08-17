@@ -5,7 +5,7 @@ from download_utils import download_file, get_index_file, video_url
 if __name__ == "__main__":
     # download_all_videos()
     import cv2
-    from global_config import frame_shape, PROJECT_ROOT
+    from global_config import FRAME_SIZE, PROJECT_ROOT
     from model_factory.toy_cnn_ae import autoencoder, encoder
     import numpy as np
     from keras.models import load_model
@@ -48,7 +48,7 @@ if __name__ == "__main__":
             if ret == True:
                 # normalize frame value
                 frame = frame.astype('float32') / 255
-                h, w = frame_shape
+                h, w = FRAME_SIZE
                 y_sample_idx = np.random.randint(0, frame.shape[0]-h, sample_batch_size)
                 x_sample_idx = np.random.randint(0, frame.shape[1]-w, sample_batch_size)
                 unioned = zip(y_sample_idx, x_sample_idx)

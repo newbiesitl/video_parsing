@@ -1,9 +1,11 @@
 import os
 from keras.models import load_model
-frame_shape = (80, 80)
-attention_coor = (180, 180)
+# height width format
+FRAME_SIZE = (80, 80)
+# (y, x) format
+ATTENTION_COOR = (180, 180)
 channels = 3
-input_shape = (frame_shape[0], frame_shape[1], channels)
+INPUT_SHAPE = (FRAME_SIZE[0], FRAME_SIZE[1], channels)
 SCRIPT_PATH = os.path.dirname(os.path.realpath(__file__))
 LABEL_DIR = os.path.join(SCRIPT_PATH, 'labels')
 LABEL_FRAME_DIR = os.path.join(LABEL_DIR, 'frames')
@@ -20,8 +22,8 @@ encoder_name = 'version_1_encoder.m5'
 AE_PATH = os.path.join(MODEL_DIR, model_name)
 ENCODER_PATH = os.path.join(MODEL_DIR, encoder_name)
 
-FIRST_TS = 1538076003
-LAST_TS = 1539326113
+MIN_TS = 1538076003
+MAX_TS = 1539326113
 FPS = 24
 
 ae = load_model(AE_PATH)

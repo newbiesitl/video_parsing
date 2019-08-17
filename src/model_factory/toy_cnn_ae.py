@@ -2,9 +2,9 @@
 from keras.layers import Input, Dense, Conv2D, MaxPooling2D, UpSampling2D, Flatten, Reshape, BatchNormalization
 from keras.models import Model
 from keras import backend as K
-from src.global_config import input_shape
+from src.global_config import INPUT_SHAPE
 
-input_img = Input(shape=input_shape)  # adapt this if using `channels_first` image data format
+input_img = Input(shape=INPUT_SHAPE)  # adapt this if using `channels_first` image data format
 n_features = 64
 x = Conv2D(128, (3, 3), activation='relu', padding='same')(input_img)
 x = MaxPooling2D((2, 2), padding='same')(x)
