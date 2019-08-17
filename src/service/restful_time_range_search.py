@@ -3,7 +3,7 @@ from flask_restplus import Api, Resource, fields
 from model_factory.knn_object_detection import  build_knn
 from download_utils import get_index_file
 from global_config import MIN_TS,ATTENTION_COOR, FRAME_SIZE, encoder, ae
-import numpy
+import numpy as np
 
 
 
@@ -63,7 +63,15 @@ class ObjDetect(Resource):
             embedded_frame = encoder.predict(np.array([frame]))
             ret = car_model.predict(embedded_frame)
             this_result = ret[0]
-
+            return make_response(
+                jsonify(
+                    {
+                        'status': 'success!',
+                        'result': this_result
+                    },
+                    200
+                )
+            )
         except ValueError as e:
             return make_response(
                 jsonify(
@@ -74,3 +82,8 @@ class ObjDetect(Resource):
                 ),
                 403
             )
+
+
+if __name__ == "__main__":
+    app.run(host='0.0.0.0',port=5000)
+    # app.run()
