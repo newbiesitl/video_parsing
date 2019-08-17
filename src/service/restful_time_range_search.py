@@ -6,7 +6,23 @@ from global_config import MIN_TS, ATTENTION_COOR, FRAME_SIZE, encoder, ae
 import numpy as np
 
 
+def init_classifier():
+    car_model = build_knn()
+    return car_model
+global car_model
+car_model  = init_classifier()
 
+
+model_store = {}
+model_store['car'] = car_model
+
+
+def init_video_handler():
+    import data_utils
+    t = data_utils.VideoDatabaseAccess()
+    return t
+global video_handler
+video_handler = init_video_handler()
 
 # init app
 app = Flask(__name__)
@@ -31,18 +47,7 @@ obj_detect_parser.add_argument('height', type=int, choices=[80], default=80,
                                help='height of input image', )
 
 
-def init_classifier():
-    car_model = build_knn()
-    return car_model
-global car_model
-car_model  = init_classifier()
 
-def init_video_handler():
-    import data_utils
-    t = data_utils.VideoDatabaseAccess()
-    return t
-global video_handler
-video_handler = init_video_handler()
 
 @ns.route('/ask/contain')
 class ObjDetect(Resource):
@@ -59,6 +64,9 @@ class ObjDetect(Resource):
         try:
             payload = obj_detect_parser.parse_args()
             target_object = payload.get('target_object', 'car')
+            model = model_store.get(target_object, None)
+            if model is None:
+                raise ValueError('object type %s is not supported' % target_object)
             time_stamp = payload.get('time stamp', MIN_TS)
             x = payload.get('x', ATTENTION_COOR[1])
             y = payload.get('y', ATTENTION_COOR[0])
@@ -77,7 +85,7 @@ class ObjDetect(Resource):
                     200
                 )
             )
-        except FileNotFoundError as e:
+        except ValueError as e:
             return make_response(
                 jsonify(
                     {
