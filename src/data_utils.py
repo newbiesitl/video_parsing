@@ -71,6 +71,7 @@ class VideoDatabaseAccess(object):
         :param ts: integer - second
         :return:
         '''
+        print(ts)
         stream, leftmost_exist_boundary = self.get_closest_file_stream_given_ts(ts, w=w, h=h, x=x, y=y)
         frame_counter = 0
         for frame in stream:

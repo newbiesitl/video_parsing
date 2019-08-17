@@ -1,5 +1,6 @@
 import os
 from keras.models import load_model
+
 # height width format
 FRAME_SIZE = (80, 80)
 # (y, x) format
@@ -26,5 +27,11 @@ MIN_TS = 1538076003
 MAX_TS = 1539326113
 FPS = 24
 
+global ae
 ae = load_model(AE_PATH)
+# for this bug
+# https://github.com/keras-team/keras/issues/6462
+ae._make_predict_function()
+global encoder
 encoder = load_model(ENCODER_PATH)
+encoder._make_predict_function()
