@@ -59,7 +59,6 @@ class ObjDetect(Resource):
         try:
             payload = obj_detect_parser.parse_args()
             target_object = payload.get('target_object', 'car')
-            print(MIN_TS)
             time_stamp = payload.get('time stamp', MIN_TS)
             x = payload.get('x', ATTENTION_COOR[1])
             y = payload.get('y', ATTENTION_COOR[0])
