@@ -2,7 +2,7 @@ from flask import Flask, jsonify, make_response, Blueprint
 from flask_restplus import Api, Resource, fields
 from model_factory.knn_object_detection import  build_knn
 from download_utils import get_index_file
-from global_config import MIN_TS, ATTENTION_COOR, FRAME_SIZE, encoder, ae
+from global_config import MIN_TS, ATTENTION_COOR, FRAME_SIZE, Encoder, EncoderDecoder
 import numpy as np
 
 
@@ -10,11 +10,11 @@ def init_classifier():
     car_model = build_knn()
     return car_model
 global car_model
-car_model  = init_classifier()
+car_model = None
 
-
+global model_store
 model_store = {}
-model_store['car'] = car_model
+
 
 
 def init_video_handler():
@@ -22,7 +22,19 @@ def init_video_handler():
     t = data_utils.VideoDatabaseAccess()
     return t
 global video_handler
-video_handler = init_video_handler()
+video_handler = None
+
+
+def init_object_detection_app_backend(object_type):
+    global car_model
+    if car_model is None:
+        car_model = init_classifier()
+        global model_store
+        model_store[object_type] = car_model
+    global video_handler
+    if video_handler is None:
+        video_handler = init_video_handler()
+
 
 # init app
 app = Flask(__name__)
@@ -64,6 +76,9 @@ class ObjDetect(Resource):
         try:
             payload = obj_detect_parser.parse_args()
             target_object = payload.get('target_object', 'car')
+
+            init_object_detection_app_backend(target_object)
+
             model = model_store.get(target_object, None)
             if model is None:
                 raise ValueError('object type %s is not supported' % target_object)
@@ -73,7 +88,7 @@ class ObjDetect(Resource):
             width = payload.get('width', FRAME_SIZE[1])
             height = payload.get('height', FRAME_SIZE[0])
             frame = video_handler.get_frame_given_ts(time_stamp, h=height, w=width, x=x, y=y)
-            embedded_frame = encoder.predict(np.array([frame]))
+            embedded_frame = Encoder.predict(np.array([frame]))
             ret = car_model.predict(embedded_frame)
             this_result = ret[0]
             return make_response(

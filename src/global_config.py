@@ -27,11 +27,12 @@ MIN_TS = 1538076003
 MAX_TS = 1539326113
 FPS = 24
 
-global ae
-ae = load_model(AE_PATH)
+
 # for this bug
 # https://github.com/keras-team/keras/issues/6462
-ae._make_predict_function()
-global encoder
-encoder = load_model(ENCODER_PATH)
-encoder._make_predict_function()
+global EncoderDecoder
+EncoderDecoder = load_model(AE_PATH)
+EncoderDecoder._make_predict_function()
+global Encoder
+Encoder = load_model(ENCODER_PATH)
+Encoder._make_predict_function()

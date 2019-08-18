@@ -1,5 +1,5 @@
 import cv2
-from global_config import FRAME_SIZE, PROJECT_ROOT, ae, encoder
+from global_config import FRAME_SIZE, PROJECT_ROOT, EncoderDecoder, Encoder
 from model_factory.toy_cnn_ae import autoencoder, encoder
 import numpy as np
 import os
@@ -62,11 +62,11 @@ def get_frames():
                 #     y, x = coor
                 x, y = 180, 180
                 cropped_frame = frame[y:y + h, x:x + w]
-                ret = encoder.predict(np.array([cropped_frame]))[0]
+                ret = Encoder.predict(np.array([cropped_frame]))[0]
                 pred = knn.predict([ret])[0].split('_')[0]
                 prob = knn.predict_proba([ret])[0]
                 print(this_file_url, pred)
-                recon = ae.predict(np.array([cropped_frame]))[0]
+                recon = EncoderDecoder.predict(np.array([cropped_frame]))[0]
                 counter += 1
                 if prev_frame_embedding is not None:
 

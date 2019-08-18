@@ -5,13 +5,11 @@ import numpy as np
 from sklearn.neighbors import KNeighborsClassifier
 
 from download_utils import download_file, video_url
-from global_config import ENCODER_PATH, DATA_DIR
+from global_config import DATA_DIR, Encoder
 from data_utils import get_label_file_index, open_video
 
 
 def build_knn():
-    from keras.models import load_model
-    encoder = load_model(ENCODER_PATH)
     target_file_path_list = ['true_label_list.txt', 'false_label_list.txt']
     X = []
     Y = []
@@ -31,7 +29,7 @@ def build_knn():
                 img2[:, :, 1] = gray
                 img2[:, :, 2] = gray
                 frame = img2
-                embed = encoder.predict(np.array([frame]))[0]
+                embed = Encoder.predict(np.array([frame]))[0]
                 X.append(embed)
                 Y.append(target_file_path)
                 # cv2.imwrite(os.path.join(LABEL_FRAME_DIR, label_file+'.png'), frame)

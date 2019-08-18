@@ -23,6 +23,7 @@ def open_video(file_path, fps=1, h=FRAME_SIZE[0], w=FRAME_SIZE[1],
     # Check if camera opened successfully
     if (cap.isOpened() == False):
         print("Error opening video stream or file")
+        raise ValueError('Error opening video file %s' % file_path)
     frame_count = 0
     # Read until video is completed
     while (cap.isOpened()):

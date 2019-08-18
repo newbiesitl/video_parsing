@@ -88,5 +88,5 @@ if __name__ == "__main__":
         noise_buf = np.array(noise_buf)
         autoencoder.fit(noise_buf, buf, epochs=10, verbose=2, batch_size=32)
         autoencoder.save(model_path)
-        encoder.set_weights(autoencoder.get_weights())
-        encoder.save(encoder_path)
+        Encoder.set_weights(autoencoder.get_weights())
+        Encoder.save(encoder_path)
