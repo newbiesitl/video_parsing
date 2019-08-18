@@ -45,6 +45,12 @@ def open_video(file_path, fps=1, h=FRAME_SIZE[0], w=FRAME_SIZE[1],
 
 class __binary_search_indexing__(object):
     def __init__(self, values, window_size):
+        '''
+        This BS find the target that target is within [target, target+window size] range
+        window size is video clip length
+        :param values:
+        :param window_size:
+        '''
         values.sort()
         self.w = window_size
         self.values = values
