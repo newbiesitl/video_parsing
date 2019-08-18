@@ -1,6 +1,5 @@
 import cv2
 from global_config import FRAME_SIZE, PROJECT_ROOT, EncoderDecoder, Encoder
-from model_factory.toy_cnn_ae import autoencoder, encoder
 import numpy as np
 import os
 from download_utils import download_file, get_index_file, video_url
