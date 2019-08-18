@@ -70,7 +70,7 @@ class ObjDetect(Resource):
 
             embedded_frame = Encoder.predict(np.array([frame]))
             ret = car_model.predict(embedded_frame)
-            this_result = ret[0].split('_')[0]
+            this_result = ret[0]
 
 
             if return_type.lower() == 'image':

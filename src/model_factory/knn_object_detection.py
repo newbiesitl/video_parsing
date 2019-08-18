@@ -10,7 +10,7 @@ from data_utils import get_label_file_index, open_video
 
 
 def build_knn():
-    target_file_path_list = ['true_label_list.txt', 'false_label_list.txt']
+    target_file_path_list = ['true.txt', 'false.txt']
     X = []
     Y = []
     for target_file_path in target_file_path_list:
@@ -31,7 +31,8 @@ def build_knn():
                 frame = img2
                 embed = Encoder.predict(np.array([frame]))[0]
                 X.append(embed)
-                Y.append(target_file_path)
+                label = target_file_path.split('.')[0]
+                Y.append(label)
                 # cv2.imwrite(os.path.join(LABEL_FRAME_DIR, label_file+'.png'), frame)
                 # cv2.imshow('Frame_focus', frame)
                 break
