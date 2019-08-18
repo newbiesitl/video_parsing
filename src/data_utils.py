@@ -120,7 +120,7 @@ class VideoDatabaseAccess(object):
         return open_video(file_path, h=h, w=w, x=x, y=y), ret
 
     def get_frame_given_ts(self, ts, h=FRAME_SIZE[0], w=FRAME_SIZE[1],
-                           y=ATTENTION_COOR[0], x=ATTENTION_COOR[1]):
+                           y=ATTENTION_COOR[0], x=ATTENTION_COOR[1], get_left_most_file_ts=False):
         '''
         Timestamp in second
         :param ts: integer - second
@@ -131,7 +131,10 @@ class VideoDatabaseAccess(object):
         for frame in stream:
             cur_pos = frame_counter // FPS + leftmost_exist_boundary
             if ts == cur_pos:
+                if get_left_most_file_ts:
+                    return frame, leftmost_exist_boundary
                 return frame
+
             frame_counter += 1
 
 

@@ -87,7 +87,8 @@ class ObjDetect(Resource):
             y = payload.get('y', ATTENTION_COOR[0])
             width = payload.get('width', FRAME_SIZE[1])
             height = payload.get('height', FRAME_SIZE[0])
-            frame = video_handler.get_frame_given_ts(time_stamp, h=height, w=width, x=x, y=y)
+            frame, downloadable_ts = video_handler.get_frame_given_ts(time_stamp, h=height, w=width, x=x, y=y,
+                                                     get_left_most_file_ts=True)
             embedded_frame = Encoder.predict(np.array([frame]))
             ret = car_model.predict(embedded_frame)
             this_result = ret[0].split('_')[0]
@@ -95,6 +96,7 @@ class ObjDetect(Resource):
                 jsonify(
                     {
                         'status': 'success!',
+                        'downloadable ts': str(downloadable_ts)+'.ts',
                         'result': this_result
                     },
                     200
