@@ -1,6 +1,6 @@
 import os
 
-from download_utils import download_file, get_index_file, video_url
+from download_utils import download_file, get_index_file, get_video_url
 
 if __name__ == "__main__":
     # download_all_videos()
@@ -27,7 +27,7 @@ if __name__ == "__main__":
         file_path = os.path.join(data_folder, file_name)
         # continue
         if not os.path.exists(file_path):
-            download_file(video_url(this_file_url), file_path)
+            download_file(get_video_url(this_file_url), file_path)
 
         cap = cv2.VideoCapture(file_path)
         # Check if camera opened successfully

@@ -34,7 +34,7 @@ def get_image(timestamp):
     return file_url
 
 
-def video_url(file_name):
+def get_video_url(file_name):
     return PREFIX + file_name
 
 
@@ -49,12 +49,12 @@ def download_all_videos(*args):
         file_path = os.path.join(data_folder, file_name)
         if os.path.exists(file_path):
             continue
-        download_file(video_url(this_file), file_path)
+        download_file(get_video_url(this_file), file_path)
         print(this_file, 'download finish')
 
 
 def download_file_given_file_name(file_name):
-    url = video_url(file_name)
+    url = get_video_url(file_name)
     ret = requests.get(url)
     contents = ret.content
     if ret.status_code == 404:

@@ -5,7 +5,18 @@ from global_config import LABEL_DIR, FRAME_SIZE, ATTENTION_COOR, MIN_TS, DATA_DI
 
 import math
 
+from itertools import islice
 
+def window(seq, n=2):
+    "Returns a sliding window (of width n) over data from the iterable"
+    "   s -> (s0,s1,...s[n-1]), (s1,s2,...,sn), ...                   "
+    it = iter(seq)
+    result = tuple(islice(it, n))
+    if len(result) == n:
+        yield result
+    for elem in it:
+        result = result[1:] + (elem,)
+        yield result
 
 def get_label_file_index(label_file_name, step_size=1, shuffle=True):
     filename = os.path.join(LABEL_DIR, label_file_name)
@@ -15,7 +26,7 @@ def get_label_file_index(label_file_name, step_size=1, shuffle=True):
     return ret
 
 
-def open_video(file_path, fps=1, h=FRAME_SIZE[0], w=FRAME_SIZE[1],
+def open_video(file_path, frame_to_skip=1, h=FRAME_SIZE[0], w=FRAME_SIZE[1],
                y=ATTENTION_COOR[0], x=ATTENTION_COOR[1], normalize=True):
     if not os.path.exists(file_path):
         raise FileNotFoundError('file %s not found' % file_path)
@@ -30,7 +41,7 @@ def open_video(file_path, fps=1, h=FRAME_SIZE[0], w=FRAME_SIZE[1],
         # Capture frame-by-frame
         ret, frame = cap.read()
         frame_count += 1
-        if frame_count % fps != 0:
+        if frame_count % frame_to_skip != 0:
             continue
         if ret == True:
             normalize_term = 255 if normalize else 1

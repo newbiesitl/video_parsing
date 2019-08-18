@@ -4,7 +4,7 @@ import cv2
 import numpy as np
 from sklearn.neighbors import KNeighborsClassifier
 
-from download_utils import download_file, video_url
+from download_utils import download_file, get_video_url
 from global_config import DATA_DIR, Encoder
 from data_utils import get_label_file_index, open_video
 
@@ -19,7 +19,7 @@ def build_knn():
         for label_file in target_file_list:
             file_path = os.path.join(DATA_DIR, label_file)
             if not os.path.exists(file_path):
-                download_file(video_url(label_file), file_path)
+                download_file(get_video_url(label_file), file_path)
 
             for frame in open_video(file_path):
                 # print(frame)

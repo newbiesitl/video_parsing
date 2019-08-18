@@ -6,7 +6,7 @@ import numpy as np
 import cv2, io
 
 #  fonts on image
-from service.restful_global_setting import api, ns
+from service.restful_global_setting import *
 
 font = cv2.FONT_HERSHEY_SIMPLEX
 bottomLeftCornerOfText = (1, 30)
@@ -15,34 +15,6 @@ fontColor = (255, 255, 255)
 lineType = 2
 
 
-def init_classifier():
-    car_model = build_knn()
-    return car_model
-global car_model
-car_model = None
-
-global model_store
-model_store = {}
-
-
-
-def init_video_handler():
-    import data_utils
-    t = data_utils.VideoDatabaseAccess()
-    return t
-global video_handler
-video_handler = None
-
-
-def init_object_detection_app_backend(object_type):
-    global car_model
-    if car_model is None:
-        car_model = init_classifier()
-        global model_store
-        model_store[object_type] = car_model
-    global video_handler
-    if video_handler is None:
-        video_handler = init_video_handler()
 
 
 
@@ -59,6 +31,9 @@ obj_detect_parser.add_argument('width', type=int, choices=[80], default=80,
                                help='width of input image', )
 obj_detect_parser.add_argument('height', type=int, choices=[80], default=80,
                                help='height of input image', )
+obj_detect_parser.add_argument('return type', type=str, choices=['image', 'json'], default='image',
+                               help='type of response object', )
+
 
 
 
@@ -89,39 +64,44 @@ class ObjDetect(Resource):
             y = payload.get('y', ATTENTION_COOR[0])
             width = payload.get('width', FRAME_SIZE[1])
             height = payload.get('height', FRAME_SIZE[0])
+            return_type = payload.get('return type', 'image')
             frame, downloadable_ts = video_handler.get_frame_given_ts(time_stamp, h=height, w=width, x=x, y=y,
                                                      get_left_most_file_ts=True, normalize=True)
-            original_frame, downloadable_ts = video_handler.get_frame_given_ts(time_stamp, h=height, w=width, x=x, y=y,
-                                                     get_left_most_file_ts=True, normalize=False)
+
             embedded_frame = Encoder.predict(np.array([frame]))
             ret = car_model.predict(embedded_frame)
             this_result = ret[0].split('_')[0]
 
-            cv2.putText(original_frame, this_result,
-                        bottomLeftCornerOfText,
-                        font,
-                        fontScale,
-                        fontColor,
-                        lineType,
-                        )
 
-            image_binary = cv2.imencode('.jpg', original_frame)[1]
-            return send_file(
-                io.BytesIO(image_binary),
-                mimetype='image/jpeg',
-                as_attachment=True,
-                attachment_filename='%s.jpg' % ('result'))
-
-            # return make_response(
-            #     jsonify(
-            #         {
-            #             'status': 'success!',
-            #             'downloadable ts': str(downloadable_ts)+'.ts',
-            #             'result': this_result
-            #         },
-            #         200
-            #     )
-            # )
+            if return_type.lower() == 'image':
+                original_frame, downloadable_ts = video_handler.get_frame_given_ts(time_stamp, h=height, w=width, x=x,
+                                                                                   y=y,
+                                                                                   get_left_most_file_ts=True,
+                                                                                   normalize=False)
+                cv2.putText(original_frame, this_result,
+                            bottomLeftCornerOfText,
+                            font,
+                            fontScale,
+                            fontColor,
+                            lineType,
+                            )
+                image_binary = cv2.imencode('.jpg', original_frame)[1]
+                return send_file(
+                    io.BytesIO(image_binary),
+                    mimetype='image/jpeg',
+                    as_attachment=True,
+                    attachment_filename='%s.jpg' % ('result'))
+            else:
+                return make_response(
+                    jsonify(
+                        {
+                            'status': 'success!',
+                            'downloadable ts': str(downloadable_ts)+'.ts',
+                            'result': this_result
+                        },
+                        200
+                    )
+                )
 
         except ValueError as e:
             return make_response(

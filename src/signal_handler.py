@@ -2,11 +2,8 @@ import cv2
 from global_config import FRAME_SIZE, PROJECT_ROOT, EncoderDecoder, Encoder
 import numpy as np
 import os
-from download_utils import download_file, get_index_file, video_url
-from keras.models import load_model
+from download_utils import download_file, get_index_file, get_video_url
 from matplotlib import pyplot as plt
-import sklearn
-from sklearn import metrics
 import matplotlib
 from model_factory.knn_object_detection import build_knn
 
@@ -24,12 +21,12 @@ def get_frames():
     class_2_q = [0] * 200
     prev_frame_embedding = None
     knn = build_knn()
-    for this_file_url in file_list:
-        file_name = this_file_url.split('/')[-1]
+    for file_name in file_list:
+        # file_name = this_file_url.split('/')[-1]
         file_path = os.path.join(data_folder, file_name)
         # continue
         if not os.path.exists(file_path):
-            download_file(video_url(this_file_url), file_path)
+            download_file(get_video_url(file_name), file_path)
 
         cap = cv2.VideoCapture(file_path)
         # Check if camera opened successfully
@@ -64,7 +61,7 @@ def get_frames():
                 ret = Encoder.predict(np.array([cropped_frame]))[0]
                 pred = knn.predict([ret])[0].split('_')[0]
                 prob = knn.predict_proba([ret])[0]
-                print(this_file_url, pred)
+                print(file_name, pred)
                 recon = EncoderDecoder.predict(np.array([cropped_frame]))[0]
                 counter += 1
                 if prev_frame_embedding is not None:
