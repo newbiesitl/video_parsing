@@ -71,18 +71,17 @@ class __binary_search_indexing__(object):
     def __find_impl__(self, t, root_pos, l, r):
         if self.values[root_pos] <= t < self.values[root_pos] + self.w:
             return self.values[root_pos]
+        elif root_pos <= l or root_pos >= r:
+            return None
         elif self.values[root_pos] < t:
             next_pos = self.__get_r_pos__(root_pos, l, r)
-            if next_pos >= r:
-                return None
             # print(root_pos, next_pos, r)
             return self.__find_impl__(t, next_pos, root_pos, r)
 
         elif self.values[root_pos] > t:
             next_pos = self.__get_l_pos__(root_pos, l, r)
-            if next_pos <= l:
-                return None
             return self.__find_impl__(t, next_pos, l, root_pos)
+
 
 
 
@@ -104,7 +103,7 @@ class VideoDatabaseAccess(object):
         # because the clip is every 4 secs, i can do mod to extract the file name
 
     def get_closest_file_stream_given_ts(self, ts, h=FRAME_SIZE[0], w=FRAME_SIZE[1],
-                                         y=ATTENTION_COOR[0], x=ATTENTION_COOR[1]):
+                                         y=ATTENTION_COOR[0], x=ATTENTION_COOR[1], normalize=True):
         if ts < self.min or ts > self.max:
             raise ValueError("given time stamp %d outside range (%d, %d)" % (ts, self.min, self.max))
         ret = self.__index_tool__.__find__(ts)
@@ -117,16 +116,17 @@ class VideoDatabaseAccess(object):
             print('downloading file %s to %s...' % (file_name, file_path), end='')
             download_file_given_file_name(file_name)
             print('done.')
-        return open_video(file_path, h=h, w=w, x=x, y=y), ret
+        return open_video(file_path, h=h, w=w, x=x, y=y, normalize=normalize), ret
 
     def get_frame_given_ts(self, ts, h=FRAME_SIZE[0], w=FRAME_SIZE[1],
-                           y=ATTENTION_COOR[0], x=ATTENTION_COOR[1], get_left_most_file_ts=False):
+                           y=ATTENTION_COOR[0], x=ATTENTION_COOR[1], get_left_most_file_ts=False, normalize=True):
         '''
         Timestamp in second
         :param ts: integer - second
         :return:
         '''
-        stream, leftmost_exist_boundary = self.get_closest_file_stream_given_ts(ts, w=w, h=h, x=x, y=y)
+        stream, leftmost_exist_boundary = self.get_closest_file_stream_given_ts(ts, w=w, h=h, x=x, y=y,
+                                                                                normalize=normalize)
         frame_counter = 0
         for frame in stream:
             cur_pos = frame_counter // FPS + leftmost_exist_boundary

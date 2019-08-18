@@ -1,11 +1,5 @@
-import argparse
+from service.restful_master_service import *
 
-import download_utils
-from src import build_mvp_model
-
-parser = argparse.ArgumentParser()
-parser.parse_args()
-
-# your code here, delete the following (just for testing)!
-download_utils.get_index_file()
-print('it worked!')
+if __name__ == "__main__":
+    app.run(host='0.0.0.0', port=5000)
+    # app.run()
