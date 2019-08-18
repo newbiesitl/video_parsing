@@ -55,7 +55,10 @@ def download_all_videos(*args):
 
 def download_file_given_file_name(file_name):
     url = video_url(file_name)
-    contents = requests.get(url).content
+    ret = requests.get(url)
+    contents = ret.content
+    if ret.status_code == 404:
+        raise ValueError('Stream file missing %s' % (file_name))
     file_path = os.path.join(DATA_DIR, file_name)
     with open(file_path, 'wb+') as f:
         f.write(contents)

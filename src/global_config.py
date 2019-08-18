@@ -5,6 +5,7 @@ from keras.models import load_model
 FRAME_SIZE = (80, 80)
 # (y, x) format
 ATTENTION_COOR = (180, 180)
+FOOTAGE_LENGTH = 4
 channels = 3
 INPUT_SHAPE = (FRAME_SIZE[0], FRAME_SIZE[1], channels)
 SCRIPT_PATH = os.path.dirname(os.path.realpath(__file__))

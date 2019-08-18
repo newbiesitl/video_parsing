@@ -1,9 +1,9 @@
 import os, random, cv2
 
 from download_utils import get_index_file, download_file_given_file_name
-from global_config import LABEL_DIR, FRAME_SIZE, ATTENTION_COOR, MIN_TS, DATA_DIR, FPS
+from global_config import LABEL_DIR, FRAME_SIZE, ATTENTION_COOR, MIN_TS, DATA_DIR, FPS, FOOTAGE_LENGTH
 
-
+import math
 
 
 
@@ -43,10 +43,56 @@ def open_video(file_path, fps=1, h=FRAME_SIZE[0], w=FRAME_SIZE[1],
             break
 
 
+class __binary_search_indexing__(object):
+    def __init__(self, values, window_size):
+        values.sort()
+        self.w = window_size
+        self.values = values
+        self.root_pos = len(values) // 2
+        self.l = 0
+        self.r = len(self.values)
+
+    def __get_l_pos__(self, cur, l, r):
+        return math.floor((l+cur)/2)
+
+    def __get_r_pos__(self, cur,  l, r):
+        return math.ceil((cur+r)/2)
+
+    def __find__(self, t,):
+        cur = self.root_pos
+        return self.__find_impl__(t, cur, self.l, self.r)
+
+    def __find_impl__(self, t, root_pos, l, r):
+        if self.values[root_pos] <= t < self.values[root_pos] + self.w:
+            return self.values[root_pos]
+        elif self.values[root_pos] < t:
+            next_pos = self.__get_r_pos__(root_pos, l, r)
+            if next_pos >= r:
+                return None
+            # print(root_pos, next_pos, r)
+            return self.__find_impl__(t, next_pos, root_pos, r)
+
+        elif self.values[root_pos] > t:
+            next_pos = self.__get_l_pos__(root_pos, l, r)
+            if next_pos <= l:
+                return None
+            return self.__find_impl__(t, next_pos, l, root_pos)
+
+
+
+
 class VideoDatabaseAccess(object):
     def __init__(self):
         self.__raw_file_list__ = get_index_file(shuffle=False)
         self.__int_idx__ = [int(x.split('.')[0]) for x in self.__raw_file_list__]
+        '''
+        The problem is to find the left neighbour that contains target,
+        the window size is the video length, so far as i know it's a fix number 4 secs
+        so the termination condition is to return the current node if current node + window size > target 
+        '''
+
+        self.__index_tool__ = __binary_search_indexing__(self.__int_idx__, window_size=FOOTAGE_LENGTH)
+
         self.min = min(self.__int_idx__)
         self.max = max(self.__int_idx__)
         # because the clip is every 4 secs, i can do mod to extract the file name
@@ -55,15 +101,17 @@ class VideoDatabaseAccess(object):
                                          y=ATTENTION_COOR[0], x=ATTENTION_COOR[1]):
         if ts < self.min or ts > self.max:
             raise ValueError("given time stamp %d outside range (%d, %d)" % (ts, self.min, self.max))
-        leftmost_exist_boundary = (ts - self.min) // 4 * 4 + self.min
-        file_name = str(leftmost_exist_boundary)+'.ts'
+        ret = self.__index_tool__.__find__(ts)
+        if ret is None:
+            raise ValueError('streaming at time stamp %d not available' % (ts))
+        file_name = str(ret)+'.ts'
         file_path = os.path.join(DATA_DIR, file_name)
-        print('opening %s' % file_path )
+        print('opening %s for timestamp %d' % (file_path, ts))
         if not os.path.exists(file_path):
             print('downloading file %s to %s...' % (file_name, file_path), end='')
             download_file_given_file_name(file_name)
             print('done.')
-        return open_video(file_path, h=h, w=w, x=x, y=y), leftmost_exist_boundary
+        return open_video(file_path, h=h, w=w, x=x, y=y), ret
 
     def get_frame_given_ts(self, ts, h=FRAME_SIZE[0], w=FRAME_SIZE[1],
                            y=ATTENTION_COOR[0], x=ATTENTION_COOR[1]):
