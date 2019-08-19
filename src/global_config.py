@@ -21,6 +21,7 @@ TS_URL = '...'
 PROJECT_ROOT = SCRIPT_PATH
 model_name = 'version_1.m5'
 encoder_name = 'version_1_encoder.m5'
+IS_SAME_CAR_DIST_NAME = 'same_car_norm.json'
 AE_PATH = os.path.join(MODEL_DIR, model_name)
 ENCODER_PATH = os.path.join(MODEL_DIR, encoder_name)
 
