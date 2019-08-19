@@ -1,6 +1,5 @@
 from flask import jsonify, make_response, send_file
 from flask_restplus import Resource
-from model_factory.knn_object_detection import  build_knn
 from global_config import MIN_TS, ATTENTION_COOR, FRAME_SIZE, Encoder
 import numpy as np
 import cv2, io
@@ -20,10 +19,10 @@ lineType = 2
 
 
 obj_detect_parser = api.parser()
-obj_detect_parser.add_argument('target object (default car)', type=str, choices=['car',],
+obj_detect_parser.add_argument('targetObject', type=str, choices=['car',],
                                default='car',
                                help='type of object to detect', )
-obj_detect_parser.add_argument('time stamp', type=int, help='time stamp of video', default=MIN_TS)
+obj_detect_parser.add_argument('timeStamp', type=int, help='time stamp of video', default=MIN_TS)
 obj_detect_parser.add_argument('x', type=int, help='Reload labels', default=ATTENTION_COOR[1])
 obj_detect_parser.add_argument('y', type=int,
                                help='Reload labels', default=ATTENTION_COOR[0])
@@ -31,7 +30,7 @@ obj_detect_parser.add_argument('width', type=int, choices=[80], default=80,
                                help='width of input image', )
 obj_detect_parser.add_argument('height', type=int, choices=[80], default=80,
                                help='height of input image', )
-obj_detect_parser.add_argument('return type', type=str, choices=['image', 'json'], default='image',
+obj_detect_parser.add_argument('returnType', type=str, choices=['image', 'json'], default='image',
                                help='type of response object', )
 
 
@@ -52,19 +51,19 @@ class ObjDetect(Resource):
         '''
         try:
             payload = obj_detect_parser.parse_args()
-            target_object = payload.get('target_object', 'car')
+            target_object = payload.get('targetObject', 'car')
 
             init_object_detection_app_backend(target_object)
 
             model = model_store.get(target_object, None)
             if model is None:
                 raise ValueError('object type %s is not supported' % target_object)
-            time_stamp = payload.get('time stamp', MIN_TS)
+            time_stamp = payload.get('timeStamp', MIN_TS)
             x = payload.get('x', ATTENTION_COOR[1])
             y = payload.get('y', ATTENTION_COOR[0])
             width = payload.get('width', FRAME_SIZE[1])
             height = payload.get('height', FRAME_SIZE[0])
-            return_type = payload.get('return type', 'image')
+            return_type = payload.get('returnType', 'image')
             frame, downloadable_ts = video_handler.get_frame_given_ts(time_stamp, h=height, w=width, x=x, y=y,
                                                      get_left_most_file_ts=True, normalize=True)
 
@@ -116,6 +115,5 @@ class ObjDetect(Resource):
 
 
 
-car_similarity_parser = api.parser()
 
 
