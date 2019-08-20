@@ -6,7 +6,7 @@ if __name__ == "__main__":
     # download_all_videos()
     import cv2
     from global_config import FRAME_SIZE, PROJECT_ROOT
-    from model_factory.toy_cnn_ae import autoencoder, encoder
+    from model_factory.toy_cnn_ae import autoencoder, Encoder
     import numpy as np
     from keras.models import load_model
     model_name = 'version_1.m5'

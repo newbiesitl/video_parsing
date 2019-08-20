@@ -113,8 +113,18 @@ class VideoDatabaseAccess(object):
         self.max = max(self.__int_idx__)
         # because the clip is every 4 secs, i can do mod to extract the file name
 
-    def get_closest_file_stream_given_ts(self, ts, h=FRAME_SIZE[0], w=FRAME_SIZE[1],
+    def get_closest_file_stream_given_ts(self, ts, h=FRAME_SIZE[0], w=FRAME_SIZE[1], frame_to_skip=FPS,
                                          y=ATTENTION_COOR[0], x=ATTENTION_COOR[1], normalize=True):
+        '''
+        Throw ValueError if value not available
+        :param ts:
+        :param h:
+        :param w:
+        :param y:
+        :param x:
+        :param normalize:
+        :return:
+        '''
         if ts < self.min or ts > self.max:
             raise ValueError("given time stamp %d outside range (%d, %d)" % (ts, self.min, self.max))
         ret = self.__index_tool__.__find__(ts)
@@ -127,9 +137,9 @@ class VideoDatabaseAccess(object):
             print('downloading file %s to %s...' % (file_name, file_path), end='')
             download_file_given_file_name(file_name)
             print('done.')
-        return open_video(file_path, h=h, w=w, x=x, y=y, normalize=normalize), ret
+        return open_video(file_path, h=h, w=w, x=x, y=y, normalize=normalize, frame_to_skip=frame_to_skip), ret
 
-    def get_frame_given_ts(self, ts, h=FRAME_SIZE[0], w=FRAME_SIZE[1],
+    def get_frame_given_ts(self, ts, h=FRAME_SIZE[0], w=FRAME_SIZE[1], frame_to_skip=FPS,
                            y=ATTENTION_COOR[0], x=ATTENTION_COOR[1], get_left_most_file_ts=False, normalize=True):
         '''
         Timestamp in second
@@ -137,16 +147,20 @@ class VideoDatabaseAccess(object):
         :return:
         '''
         stream, leftmost_exist_boundary = self.get_closest_file_stream_given_ts(ts, w=w, h=h, x=x, y=y,
-                                                                                normalize=normalize)
+                                                                                normalize=normalize,
+                                                                                frame_to_skip=frame_to_skip)
         frame_counter = 0
+        if ts - leftmost_exist_boundary > FOOTAGE_LENGTH:
+            return None
         for frame in stream:
-            cur_pos = frame_counter // FPS + leftmost_exist_boundary
+            cur_pos = frame_counter + leftmost_exist_boundary
             if ts == cur_pos:
                 if get_left_most_file_ts:
                     return frame, leftmost_exist_boundary
                 return frame
 
             frame_counter += 1
+        return None
 
 
 if __name__ == "__main__":

@@ -1,12 +1,17 @@
 from data_utils import open_video, window
 from download_utils import get_index_file, download_file_given_file_name
 from sklearn.metrics.pairwise import cosine_similarity
-from global_config import DATA_DIR, Encoder, MODEL_DIR, IS_SAME_CAR_DIST_NAME
+from global_config import DATA_DIR, Encoder, MODEL_DIR, IS_SAME_CAR_DIST_NAME, MIN_TS, ATTENTION_COOR, FRAME_SIZE, FPS
 import os
 from scipy.stats import norm
-import numpy as np
 import json
+from flask import jsonify, make_response, send_file
+from flask_restplus import Resource
+import numpy as np
+import cv2, io
 
+#  fonts on image
+from service.restful_global_setting import *
 np.random.seed(1238)
 def watch_n_random_videos(n=30, fps=24, time_to_skip=4):
     file_list = get_index_file(1, shuffle=True,)
@@ -21,6 +26,39 @@ def watch_n_random_videos(n=30, fps=24, time_to_skip=4):
         if counter % n == 0:
             break
     return observations
+
+def is_frame_car(ts, frame_to_skip=FPS):
+    try:
+        frame = video_handler.get_frame_given_ts(ts, normalize=True, frame_to_skip=frame_to_skip)
+        if (frame is not None) and car_model.predict(frame)[0] == 'true':
+                return True
+    except ValueError:
+        # convert exception to result
+        pass
+    return False
+
+def get_n_continuous_car_frame_indices(n=30, fps=FPS, time_to_skip=1, shuffle=True,):
+    file_list = get_index_file(1, shuffle=shuffle,)
+    ts_list = [int(file_name.split('.')[0]) for file_name in file_list]
+    counter = 1
+    buffer = []
+    is_prev_frame_car = False
+    for ts in ts_list:
+        if is_frame_car(ts, frame_to_skip=fps):
+            buffer.append(ts)
+            is_prev_frame_car = True
+        else:
+            if is_prev_frame_car:
+                counter += 1
+                yield buffer
+                buffer = []
+                is_prev_frame_car = False
+        ts += time_to_skip
+
+        if counter % n == 0:
+            break
+
+
 
 
 def single_video_produce(video_name, fps, step_size=4):
@@ -66,15 +104,6 @@ def learn_similar_car_from_videos(num_instances=10, fps=24, interval=4, learn_ne
 
 
 
-
-from flask import jsonify, make_response, send_file
-from flask_restplus import Resource
-from global_config import MIN_TS, ATTENTION_COOR, FRAME_SIZE, Encoder
-import numpy as np
-import cv2, io
-
-#  fonts on image
-from service.restful_global_setting import *
 
 font = cv2.FONT_HERSHEY_SIMPLEX
 bottomLeftCornerOfText = (1, 30)
