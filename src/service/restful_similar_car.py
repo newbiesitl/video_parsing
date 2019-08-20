@@ -30,11 +30,14 @@ def watch_n_random_videos(n=30, fps=24, time_to_skip=4):
 def is_frame_car(ts, frame_to_skip=FPS):
     try:
         frame = video_handler.get_frame_given_ts(ts, normalize=True, frame_to_skip=frame_to_skip)
-        if (frame is not None) and car_model.predict(frame)[0] == 'true':
-                return True
-    except ValueError:
+        is_car = car_model.predict(
+            Encoder.predict(np.array([frame]))
+        )[0]
+        if (frame is not None) and is_car == 'true':
+            return True
+    except ValueError as e:
         # convert exception to result
-        pass
+        print(e)
     return False
 
 def get_n_continuous_car_frame_indices(n=30, fps=FPS, time_to_skip=1, shuffle=True,):
@@ -44,21 +47,25 @@ def get_n_continuous_car_frame_indices(n=30, fps=FPS, time_to_skip=1, shuffle=Tr
     buffer = []
     is_prev_frame_car = False
     for ts in ts_list:
-        if is_frame_car(ts, frame_to_skip=fps):
-            buffer.append(ts)
-            is_prev_frame_car = True
-        else:
-            if is_prev_frame_car:
-                counter += 1
-                yield buffer
-                buffer = []
-                is_prev_frame_car = False
-        ts += time_to_skip
+        while True:
+            if is_frame_car(ts, frame_to_skip=fps):
+                print('car frame', ts)
+                buffer.append(ts)
+                is_prev_frame_car = True
+            else:
+                if is_prev_frame_car:
+                    counter += 1
+                    yield buffer
+                    buffer = []
+                    is_prev_frame_car = False
+                    break
+                else:
+                    # fast forward
+                    ts += time_to_skip * 10
+            ts += time_to_skip
 
         if counter % n == 0:
             break
-
-
 
 
 def single_video_produce(video_name, fps, step_size=4):
@@ -267,5 +274,5 @@ class ObjDetect(Resource):
 
 
 if __name__ == "__main__":
-    norm_param = learn_similar_car_from_videos(10, learn_new=False)
-    print(norm_param)
+    for trial in get_n_continuous_car_frame_indices(10):
+        print(trial)
