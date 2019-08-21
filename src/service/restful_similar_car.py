@@ -50,7 +50,7 @@ def watch_n_random_videos(n=30, max_samples_per_clip=300, fps=FPS, shuffle=True)
         except ValueError:
             continue
 
-def get_n_continuous_car_frame_indices(n=30, fps=FPS, shuffle=True, fast_forward_cap_speed=300):
+def get_n_continuous_car_frame_indices(n=30, fps=FPS, shuffle=True, fast_forward_cap_speed=300, max_frame=5000):
     file_list = get_index_file(1, shuffle=shuffle,)
     ts_list = [int(file_name.split('.')[0]) for file_name in file_list]
     counter = 1
@@ -58,8 +58,11 @@ def get_n_continuous_car_frame_indices(n=30, fps=FPS, shuffle=True, fast_forward
     multipler = 0
     is_prev_frame_car = False
     for ts in ts_list:
+        start_ts = ts
         while True:
             try:
+                if ts - start_ts > max_frame:
+                    break
                 if is_frame_car(ts, frame_to_skip=fps):
                     buffer.append(ts)
                     if is_prev_frame_car:
