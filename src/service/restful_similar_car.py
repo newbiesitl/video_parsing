@@ -208,10 +208,10 @@ class ObjDetect(Resource):
             frame_r, downloadable_ts_r = video_handler.get_frame_given_ts(time_stamp_r, h=height, w=width, x=x, y=y,
                                                      get_left_most_file_ts=True, normalize=True)
             embedded_frame_r = Encoder.predict(np.array([frame_r]))
-            ret_l = car_model.predict(embedded_frame_l)[0]
-            ret_r = car_model.predict(embedded_frame_r)[0]
-            ret_l = True if ret_l.lower() == 'true' else False
-            ret_r = True if ret_r.lower() == 'true' else False
+            # ret_l = car_model.predict(embedded_frame_l)[0]
+            # ret_r = car_model.predict(embedded_frame_r)[0]
+            # ret_l = True if ret_l.lower() == 'true' else False
+            # ret_r = True if ret_r.lower() == 'true' else False
 
             similarity = SIMILARITY_METRIC(embedded_frame_l, embedded_frame_r).flatten()[0]
 
