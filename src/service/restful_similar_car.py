@@ -1,6 +1,6 @@
 from data_utils import open_video, window
 from download_utils import get_index_file, download_file_given_file_name
-from global_config import Encoder, MODEL_DIR, IS_SAME_CAR_DIST_NAME, MIN_TS, \
+from global_config import Encoder, MODEL_DIR, COSINE_IS_SAME_CAR_DIST_NAME, MIN_TS, \
     ATTENTION_COOR, FRAME_SIZE, FPS, SIMILARITY_METRIC
 import os
 from scipy import stats
@@ -101,7 +101,7 @@ def learn_similar_car_from_videos(num_instances=10, fps=24, learn_new=False):
     :param interval: interval for compare continuous images
     :return: dictionary contains normal distribution mean and std
     '''
-    this_dist_path = os.path.join(MODEL_DIR, IS_SAME_CAR_DIST_NAME)
+    this_dist_path = os.path.join(MODEL_DIR, COSINE_IS_SAME_CAR_DIST_NAME)
     if os.path.exists(this_dist_path) and (not learn_new):
         with open(this_dist_path, 'r') as f:
             car_sim_dist = json.load(f)
@@ -140,7 +140,7 @@ def normal_pdf(x, norm_param):
     m = norm_param['mean']
     var = norm_param['scale']
     rvs = stats.norm.rvs(loc=m, scale=var, size=(50, 2))
-    return stats.ttest_1samp(rvs, x)
+    return stats.ttest_1samp(rvs, x)[1]
 
 
 
@@ -213,7 +213,8 @@ class ObjDetect(Resource):
             ret_l = True if ret_l.lower() == 'true' else False
             ret_r = True if ret_r.lower() == 'true' else False
 
-            if ret_l is False or ret_r is False:
+            # if ret_l is False or ret_r is False:
+            if False:
                 return make_response(
                     jsonify(
                         {
@@ -232,7 +233,9 @@ class ObjDetect(Resource):
             if car_similarity_norm_param is None:
                 car_similarity_norm_param = learn_similar_car_from_videos(num_instances=10, learn_new=False)
             test_p_value = normal_pdf(similarity, car_similarity_norm_param)
-            if test_p_value < p_value_threshold:
+            print(car_similarity_norm_param)
+            print(similarity, test_p_value)
+            if test_p_value[0] < p_value_threshold/100:
                 this_result = 'false'
             else:
                 this_result = 'true'
@@ -266,7 +269,8 @@ class ObjDetect(Resource):
                             'status': 'success!',
                             'downloadable ts 1': str(downloadable_ts_l)+'.ts',
                             'downloadable ts 2': str(downloadable_ts_r)+'.ts',
-                            'test p value': test_p_value,
+                            'left p value': test_p_value[0],
+                            'right p value': test_p_value[1],
                             'result': this_result,
                         },
                         200
