@@ -44,7 +44,8 @@ def watch_n_random_videos(n=30, max_samples_per_clip=300, fps=FPS, shuffle=True)
                 r_ts = r_imgs_ts[ts_idx]
                 r_t_img = video_handler.get_frame_given_ts(r_ts)
                 r_t_emd = Encoder.predict(np.array([r_t_img]))
-                diff = sklearn.metrics.pairwise.cosine_similarity(l_t_emd, r_t_emd)
+                # diff = sklearn.metrics.pairwise.cosine_similarity(l_t_emd, r_t_emd)
+                diff = sklearn.metrics.pairwise.euclidean_distances(l_t_emd, r_t_emd)
                 yield diff
         except ValueError:
             continue
@@ -283,4 +284,4 @@ class ObjDetect(Resource):
 
 
 if __name__ == "__main__":
-    learn_similar_car_from_videos(100, learn_new=True)
+    learn_similar_car_from_videos(30, learn_new=True)
