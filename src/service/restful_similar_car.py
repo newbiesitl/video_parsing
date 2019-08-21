@@ -1,7 +1,7 @@
 from data_utils import open_video, window
 from download_utils import get_index_file, download_file_given_file_name
-from sklearn.metrics.pairwise import cosine_similarity
-from global_config import Encoder, MODEL_DIR, IS_SAME_CAR_DIST_NAME, MIN_TS, ATTENTION_COOR, FRAME_SIZE, FPS
+from global_config import Encoder, MODEL_DIR, IS_SAME_CAR_DIST_NAME, MIN_TS, \
+    ATTENTION_COOR, FRAME_SIZE, FPS, SIMILARITY_METRIC
 import os, sklearn
 from scipy.stats import norm
 import json
@@ -28,12 +28,13 @@ def is_frame_car(ts, frame_to_skip=FPS):
         raise ValueError(e)
     return False
 
-def watch_n_random_videos(n=30, max_samples_per_clip=300, fps=FPS, shuffle=True):
+def watch_n_random_videos(n=30, max_samples_per_clip=100, fps=FPS, shuffle=True):
     clip_ts_range_list = list(get_n_continuous_car_frame_indices(n, fps=fps, shuffle=shuffle))
     for clip_range in clip_ts_range_list:
         left, right = clip_range
         length = right-left
         samples_to_draw = min(length, max_samples_per_clip)
+        print(left, right)
         l_imgs_ts = np.random.randint(left, right, samples_to_draw)
         r_imgs_ts = np.random.randint(left, right, samples_to_draw)
         try:
@@ -44,13 +45,12 @@ def watch_n_random_videos(n=30, max_samples_per_clip=300, fps=FPS, shuffle=True)
                 r_ts = r_imgs_ts[ts_idx]
                 r_t_img = video_handler.get_frame_given_ts(r_ts)
                 r_t_emd = Encoder.predict(np.array([r_t_img]))
-                # diff = sklearn.metrics.pairwise.cosine_similarity(l_t_emd, r_t_emd)
-                diff = sklearn.metrics.pairwise.euclidean_distances(l_t_emd, r_t_emd)
+                diff = SIMILARITY_METRIC(l_t_emd, r_t_emd)
                 yield diff
         except ValueError:
             continue
 
-def get_n_continuous_car_frame_indices(n=30, fps=FPS, shuffle=True, fast_forward_cap_speed=300, max_frame=5000):
+def get_n_continuous_car_frame_indices(n=30, fps=FPS, shuffle=True, fast_forward_cap_speed=60, max_frame=5000):
     file_list = get_index_file(1, shuffle=shuffle,)
     ts_list = [int(file_name.split('.')[0]) for file_name in file_list]
     counter = 1
@@ -225,7 +225,7 @@ class ObjDetect(Resource):
                         200
                     )
                 )
-            similarity = cosine_similarity(embedded_frame_l, embedded_frame_r).flatten()[0]
+            similarity = SIMILARITY_METRIC(embedded_frame_l, embedded_frame_r).flatten()[0]
 
             global car_similarity_norm_param
             if car_similarity_norm_param is None:

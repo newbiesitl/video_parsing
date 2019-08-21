@@ -24,7 +24,6 @@ encoder_name = 'version_1_encoder.m5'
 IS_SAME_CAR_DIST_NAME = 'same_car_norm.json'
 AE_PATH = os.path.join(MODEL_DIR, model_name)
 ENCODER_PATH = os.path.join(MODEL_DIR, encoder_name)
-
 MIN_TS = 1538076003
 MAX_TS = 1539326113
 FPS = 24
@@ -38,3 +37,8 @@ EncoderDecoder._make_predict_function()
 global Encoder
 Encoder = load_model(ENCODER_PATH)
 Encoder._make_predict_function()
+
+
+import sklearn
+SIMILARITY_METRIC = sklearn.metrics.pairwise.euclidean_distances
+# SIMILARITY_METRIC = sklearn.metrics.pairwise.cosine_similarity
