@@ -1,6 +1,6 @@
 from data_utils import open_video, window
 from download_utils import get_index_file, download_file_given_file_name
-from global_config import Encoder, MODEL_DIR, COSINE_IS_SAME_CAR_DIST_NAME, MIN_TS, \
+from global_config import Encoder, MODEL_DIR, TEST_SIGNIFICANCE_PERCENTILE, MIN_TS, \
     ATTENTION_COOR, FRAME_SIZE, FPS, SIMILARITY_METRIC
 import os
 from scipy import stats
@@ -9,6 +9,10 @@ from flask import jsonify, make_response, send_file
 from flask_restplus import Resource
 import numpy as np
 import cv2, io
+import bootstrapped.bootstrap as bs
+import bootstrapped.stats_functions as bs_stats
+
+
 
 #  fonts on image
 from service.restful_global_setting import *
@@ -29,8 +33,7 @@ def is_frame_car(ts, frame_to_skip=FPS):
     return False
 
 def watch_n_random_videos(n=30, max_samples_per_clip=100, fps=FPS, shuffle=True):
-    clip_ts_range_list = list(get_n_continuous_car_frame_indices(n, fps=fps, shuffle=shuffle))
-    for clip_range in clip_ts_range_list:
+    for clip_range in get_n_continuous_car_frame_indices(n, fps=fps, shuffle=shuffle):
         left, right = clip_range
         length = right-left
         samples_to_draw = min(length, max_samples_per_clip)
@@ -67,8 +70,8 @@ def get_n_continuous_car_frame_indices(n=30, fps=FPS, shuffle=True, fast_forward
                 if is_frame_car(ts, frame_to_skip=fps):
                     buffer.append(ts)
                     if is_prev_frame_car:
-                        this_step = min(2 ** multipler, fast_forward_cap_speed)
                         multipler = min(multipler + 1, multipler_cap)
+                        this_step = min(2 ** multipler, fast_forward_cap_speed)
                         ts += this_step
                     else:
                         is_prev_frame_car = True
@@ -93,7 +96,7 @@ def get_n_continuous_car_frame_indices(n=30, fps=FPS, shuffle=True, fast_forward
             break
 
 
-def learn_similar_car_from_videos(num_instances=10, fps=24, learn_new=False):
+def learn_similar_car_from_videos(num_instances=10, fps=24, learn_new=False, percentile=5):
     '''
     Learn similarity distribution from continuous frames that both contains cars
     :param num_instances: number of positive instances need to observe
@@ -101,7 +104,7 @@ def learn_similar_car_from_videos(num_instances=10, fps=24, learn_new=False):
     :param interval: interval for compare continuous images
     :return: dictionary contains normal distribution mean and std
     '''
-    this_dist_path = os.path.join(MODEL_DIR, COSINE_IS_SAME_CAR_DIST_NAME)
+    this_dist_path = os.path.join(MODEL_DIR, TEST_SIGNIFICANCE_PERCENTILE)
     if os.path.exists(this_dist_path) and (not learn_new):
         with open(this_dist_path, 'r') as f:
             car_sim_dist = json.load(f)
@@ -111,11 +114,12 @@ def learn_similar_car_from_videos(num_instances=10, fps=24, learn_new=False):
         n = num_instances
         ret = watch_n_random_videos(n, fps,)
         ret = list(ret)
-        m = np.average(ret)
-        var = np.std(ret)
+        mean, ci = bs.bootstrap(ret, stat_func=bs_stats.mean)
+        l_percentile, r_percentile = ci
         car_sim_dist = {
-            'mean': float(m),
-            'scale': float(var),
+            'l_percentile': l_percentile,
+            'r_percentile': r_percentile,
+            'mean': mean,
         }
 
         with open(this_dist_path, 'w+') as f:
@@ -138,7 +142,7 @@ car_similarity_norm_param = None
 
 def normal_pdf(x, norm_param):
     m = norm_param['mean']
-    var = norm_param['scale']
+    var = norm_param['scale']**2
     rvs = stats.norm.rvs(loc=m, scale=var, size=(50, 2))
     return stats.ttest_1samp(rvs, x)[1]
 
@@ -217,7 +221,7 @@ class ObjDetect(Resource):
 
             global car_similarity_norm_param
             if car_similarity_norm_param is None:
-                car_similarity_norm_param = learn_similar_car_from_videos(num_instances=10, learn_new=False)
+                car_similarity_norm_param = learn_similar_car_from_videos(num_instances=10, learn_new=False, percentile=p_value_threshold)
             test_p_value = normal_pdf(similarity, car_similarity_norm_param)
             print(car_similarity_norm_param)
             print(similarity, test_p_value)
@@ -255,6 +259,7 @@ class ObjDetect(Resource):
                             'status': 'success!',
                             'downloadable ts 1': str(downloadable_ts_l)+'.ts',
                             'downloadable ts 2': str(downloadable_ts_r)+'.ts',
+                            'score': float(similarity),
                             'left p value': test_p_value[0],
                             'right p value': test_p_value[1],
                             'result': this_result,
