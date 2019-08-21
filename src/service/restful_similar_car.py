@@ -31,7 +31,7 @@ def is_frame_car(ts, frame_to_skip=FPS):
 def watch_n_random_videos(n=30, fps=FPS, shuffle=True):
     pass
 
-def get_n_continuous_car_frame_indices(n=30, fps=FPS, shuffle=True,):
+def get_n_continuous_car_frame_indices(n=30, fps=FPS, shuffle=True, fast_forward_cap_speed=180):
     file_list = get_index_file(1, shuffle=shuffle,)
     ts_list = [int(file_name.split('.')[0]) for file_name in file_list]
     counter = 1
@@ -44,7 +44,7 @@ def get_n_continuous_car_frame_indices(n=30, fps=FPS, shuffle=True,):
                 if is_frame_car(ts, frame_to_skip=fps):
                     buffer.append(ts)
                     if is_prev_frame_car:
-                        this_step = min(2 ** multipler, 256)
+                        this_step = min(2 ** multipler, fast_forward_cap_speed)
                         print('step size', this_step, multipler)
                         multipler += 1
                         ts += this_step
