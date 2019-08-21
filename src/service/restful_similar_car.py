@@ -13,19 +13,7 @@ import cv2, io
 #  fonts on image
 from service.restful_global_setting import *
 np.random.seed(1238)
-def watch_n_random_videos(n=30, fps=24, time_to_skip=4):
-    file_list = get_index_file(1, shuffle=True,)
-    observations = []
-    counter = 1
-    for each_file in file_list:
-        for score in single_video_produce(each_file, fps, step_size=time_to_skip):
-            counter += 1
-            observations.append(score)
-            if counter % n == 0:
-                break
-        if counter % n == 0:
-            break
-    return observations
+
 
 def is_frame_car(ts, frame_to_skip=FPS):
     try:
@@ -37,10 +25,13 @@ def is_frame_car(ts, frame_to_skip=FPS):
             return True
     except ValueError as e:
         # convert exception to result
-        print(e)
+        raise ValueError(e)
     return False
 
-def get_n_continuous_car_frame_indices(n=30, fps=FPS, time_to_skip=1, shuffle=True,):
+def watch_n_random_videos(n=30, fps=FPS, shuffle=True):
+    pass
+
+def get_n_continuous_car_frame_indices(n=30, fps=FPS, shuffle=True,):
     file_list = get_index_file(1, shuffle=shuffle,)
     ts_list = [int(file_name.split('.')[0]) for file_name in file_list]
     counter = 1
@@ -49,47 +40,38 @@ def get_n_continuous_car_frame_indices(n=30, fps=FPS, time_to_skip=1, shuffle=Tr
     is_prev_frame_car = False
     for ts in ts_list:
         while True:
-            if is_frame_car(ts, frame_to_skip=fps):
-                buffer.append(ts)
-                if is_prev_frame_car:
-                    this_step = 2 ^ multipler
-                    print('step size', this_step)
-                    multipler += 1
-                    ts += this_step
+            try:
+                if is_frame_car(ts, frame_to_skip=fps):
+                    buffer.append(ts)
+                    if is_prev_frame_car:
+                        this_step = min(2 ** multipler, 256)
+                        print('step size', this_step, multipler)
+                        multipler += 1
+                        ts += this_step
+                    else:
+                        is_prev_frame_car = True
+                        multipler = 0
+                        ts += 1
                 else:
-                    is_prev_frame_car = True
-                    multipler = 0
-                    ts += 1
-            else:
-                if is_prev_frame_car:
-                    counter += 1
-                    yield buffer
-                    buffer = []
-                    is_prev_frame_car = False
-                    multipler = 0
-                    ts += 1
-                    break
-                else:
-                    break
+                    if is_prev_frame_car:
+                        counter += 1
+                        yield (buffer[0], buffer[-1])
+                        buffer = []
+                        is_prev_frame_car = False
+                        multipler = 0
+                        ts += 1
+                        break
+                    else:
+                        break
+            except ValueError:
+                ts += 1
+                continue
 
         if counter % n == 0:
             break
 
 
-def single_video_produce(video_name, fps, step_size=4):
-    file_path = os.path.join(DATA_DIR, video_name)
-    if not os.path.exists(file_path):
-        download_file_given_file_name(video_name)
-    for frame_pair in window(open_video(file_path, frame_to_skip=fps, normalize=True), step_size):
-        encoded = Encoder.predict(np.array(frame_pair))
-        img1_encoded = encoded[0]
-        img2_encoded = encoded[-1]
-        if (car_model.predict([img1_encoded])[0] == 'true') and (car_model.predict([img2_encoded])[0] == 'true'):
-            ret = cosine_similarity([img1_encoded], [img2_encoded]).flatten()[0]
-            print('reading similarity', ret)
-            yield ret
-
-def learn_similar_car_from_videos(num_instances=10, fps=24, interval=4, learn_new=False):
+def learn_similar_car_from_videos(num_instances=10, fps=24, learn_new=False):
     '''
     Learn similarity distribution from continuous frames that both contains cars
     :param num_instances: number of positive instances need to observe
@@ -105,7 +87,7 @@ def learn_similar_car_from_videos(num_instances=10, fps=24, interval=4, learn_ne
     else:
         fps = fps
         n = num_instances
-        ret = watch_n_random_videos(n, fps, time_to_skip=interval)
+        ret = watch_n_random_videos(n, fps,)
         m = np.average(ret)
         var = np.std(ret)
         car_sim_dist = {
