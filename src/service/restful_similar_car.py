@@ -2,8 +2,8 @@ from data_utils import open_video, window
 from download_utils import get_index_file, download_file_given_file_name
 from global_config import Encoder, MODEL_DIR, IS_SAME_CAR_DIST_NAME, MIN_TS, \
     ATTENTION_COOR, FRAME_SIZE, FPS, SIMILARITY_METRIC
-import os, sklearn
-from scipy.stats import norm
+import os
+from scipy import stats
 import json
 from flask import jsonify, make_response, send_file
 from flask_restplus import Resource
@@ -139,7 +139,8 @@ car_similarity_norm_param = None
 def normal_pdf(x, norm_param):
     m = norm_param['mean']
     var = norm_param['scale']
-    return norm(m, var).pdf(x)
+    rvs = stats.norm.rvs(loc=m, scale=var, size=(50, 2))
+    return stats.ttest_1samp(rvs, x)
 
 
 
