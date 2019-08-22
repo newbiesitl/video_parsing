@@ -85,7 +85,7 @@ class ObjDetect(Resource):
             width = payload.get('width', FRAME_SIZE[1])
             height = payload.get('height', FRAME_SIZE[0])
             return_type = payload.get('returnType', 'image')
-            p_value_threshold = payload.get('pValue', 5)
+            p_value_threshold = payload.get('pValue', 10)
 
 
 
