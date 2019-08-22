@@ -63,6 +63,7 @@ def download_file_given_file_name(file_name):
     with open(file_path, 'wb+') as f:
         f.write(contents)
 
+
 def download_file(url, filename):
     '''
     downloads a the contents of the provided url to a local file

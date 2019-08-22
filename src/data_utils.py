@@ -127,10 +127,10 @@ class VideoDatabaseAccess(object):
         '''
         if ts < self.min or ts > self.max:
             raise ValueError("given time stamp %d outside range (%d, %d)" % (ts, self.min, self.max))
-        ret = self.__index_tool__.__find__(ts)
-        if ret is None:
+        ts_idx = self.__index_tool__.__find__(ts)
+        if ts_idx is None:
             raise ValueError('streaming at time stamp %d not available' % (ts))
-        file_name = str(ret)+'.ts'
+        file_name = str(ts_idx)+'.ts'
         file_path = os.path.join(DATA_DIR, file_name)
         if verbose == 1:
             print('opening %s for timestamp %d' % (file_path, ts))
@@ -138,7 +138,7 @@ class VideoDatabaseAccess(object):
             if verbose == 1:
                 print('downloading file %s to %s...' % (file_name, file_path), end='')
             download_file_given_file_name(file_name)
-        return open_video(file_path, h=h, w=w, x=x, y=y, normalize=normalize, frame_to_skip=frame_to_skip), ret
+        return open_video(file_path, h=h, w=w, x=x, y=y, normalize=normalize, frame_to_skip=frame_to_skip), ts_idx
 
     def get_frame_given_ts(self, ts, h=FRAME_SIZE[0], w=FRAME_SIZE[1], frame_to_skip=FPS,
                            y=ATTENTION_COOR[0], x=ATTENTION_COOR[1], get_left_most_file_ts=False, normalize=True):
