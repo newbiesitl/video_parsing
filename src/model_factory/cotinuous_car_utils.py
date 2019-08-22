@@ -59,6 +59,7 @@ def get_n_continuous_car_frame_indices(n=30, fps=FPS, shuffle=True, fast_forward
             try:
                 if ts - start_ts > max_frame:
                     if len(buffer) < 2:
+                        buffer = []
                         break
                     counter += 1
                     yield (buffer[0], buffer[-1])
@@ -88,6 +89,7 @@ def get_n_continuous_car_frame_indices(n=30, fps=FPS, shuffle=True, fast_forward
                         ts += 1
                         break
                     else:
+                        buffer = []
                         break
             except ValueError:
                 ts += 1
