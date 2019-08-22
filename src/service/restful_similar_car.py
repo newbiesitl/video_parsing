@@ -17,8 +17,8 @@ fontScale = 1
 fontColor = (255, 255, 255)
 lineType = 2
 
-global car_similarity_norm_param
-car_similarity_norm_param = None
+global car_similarity_param
+car_similarity_param = None
 
 
 
@@ -28,8 +28,11 @@ def normal_pdf(x, norm_param):
     rvs = stats.norm.rvs(loc=m, scale=var, size=(50, 2))
     return stats.ttest_1samp(rvs, x)[1]
 
-
-
+def percentile_ci(x, ci_param):
+    l = ci_param['l_percentile']
+    if x < l:
+        return False
+    return True
 is_same_car_parser = api.parser()
 is_same_car_parser.add_argument('targetObject', type=str, choices=['car', ],
                                 default='car',
@@ -101,16 +104,19 @@ class ObjDetect(Resource):
 
             similarity = SIMILARITY_METRIC(embedded_frame_l, embedded_frame_r).flatten()[0]
 
-            global car_similarity_norm_param
-            if car_similarity_norm_param is None:
-                car_similarity_norm_param = learn_similar_car_from_videos(num_instances=10, learn_new=False, percentile=p_value_threshold)
-            test_p_value = normal_pdf(similarity, car_similarity_norm_param)
-            print(car_similarity_norm_param)
-            print(similarity, test_p_value)
-            if test_p_value[0] < p_value_threshold/100:
-                this_result = 'false'
+            global car_similarity_param
+            if car_similarity_param is None:
+                car_similarity_param = learn_similar_car_from_videos(num_instances=10, learn_new=False, percentile=p_value_threshold)
+
+            ret = percentile_ci(similarity, car_similarity_param)
+            # test_p_value = normal_pdf(similarity, car_similarity_param)
+            print(car_similarity_param)
+            print(similarity)
+            # print(similarity, test_p_value)
+            if ret:
+                this_result = ret
             else:
-                this_result = 'true'
+                this_result = ret
             if return_type.lower() == 'image':
                 original_frame_l, downloadable_ts_l = video_handler.get_frame_given_ts(time_stamp_l, h=height, w=width, x=x,
                                                                                    y=y,
@@ -121,7 +127,7 @@ class ObjDetect(Resource):
                                                                                    get_left_most_file_ts=True,
                                                                                    normalize=False)
                 original_frame = np.concatenate((original_frame_l, original_frame_r), axis=1)
-                cv2.putText(original_frame, this_result,
+                cv2.putText(original_frame, str(this_result),
                             bottomLeftCornerOfText,
                             font,
                             fontScale,
@@ -142,9 +148,10 @@ class ObjDetect(Resource):
                             'downloadable ts 1': str(downloadable_ts_l)+'.ts',
                             'downloadable ts 2': str(downloadable_ts_r)+'.ts',
                             'score': float(similarity),
-                            'left p value': test_p_value[0],
-                            'right p value': test_p_value[1],
-                            'result': this_result,
+                            'left percentile value': car_similarity_param['l_percentile'],
+                            'right percentile value': car_similarity_param['r_percentile'],
+                            'mean': car_similarity_param['mean'],
+                            'result': str(this_result),
                         },
                         200
                     )
