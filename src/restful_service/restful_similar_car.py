@@ -8,7 +8,7 @@ import cv2, io
 
 #  fonts on image
 from model_factory.cotinuous_car_utils import learn_similar_car_from_videos
-from service.restful_global_setting import *
+from restful_service.restful_global_setting import *
 np.random.seed(1238)
 
 font = cv2.FONT_HERSHEY_SIMPLEX
@@ -58,7 +58,7 @@ is_same_car_parser.add_argument('pValue', type=int, choices=[1, 5, 10], default=
 
 
 @ns.route('/ask/match')
-class ObjDetect(Resource):
+class RestfulImpl(Resource):
     @ns.doc(description='''
     Current detection only support one size image
     ( 80 * 80 )

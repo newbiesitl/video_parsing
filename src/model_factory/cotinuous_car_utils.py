@@ -6,7 +6,7 @@ from bootstrapped import bootstrap as bs, stats_functions as bs_stats
 
 from download_utils import get_index_file
 from global_config import FPS, Encoder, SIMILARITY_METRIC, MODEL_DIR, TEST_SIGNIFICANCE_PERCENTILE
-from service.restful_global_setting import video_handler, car_model
+from restful_service.restful_global_setting import video_handler, car_model
 
 
 def is_frame_car(ts, frame_to_skip=FPS):

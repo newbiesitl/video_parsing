@@ -1,7 +1,7 @@
 from flask import jsonify, make_response, send_file
 from flask_restplus import Resource
 from global_config import MIN_TS, ORIGINAL_FRAME_SIZE
-from service.restful_global_setting import *
+from restful_service.restful_global_setting import *
 import io, cv2
 
 
@@ -18,7 +18,7 @@ is_same_car_parser.add_argument('height', type=int, help='height of image', defa
 
 
 @ns.route('/ask/get_image')
-class ObjDetect(Resource):
+class RestfulImpl(Resource):
     @ns.doc(description='''
     Retrieve full image 600, 800
     ''', parser=is_same_car_parser)

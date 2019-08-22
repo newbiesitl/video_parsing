@@ -5,7 +5,7 @@ import numpy as np
 import cv2, io
 
 #  fonts on image
-from service.restful_global_setting import *
+from restful_service.restful_global_setting import *
 
 font = cv2.FONT_HERSHEY_SIMPLEX
 bottomLeftCornerOfText = (1, 30)
@@ -38,7 +38,7 @@ obj_detect_parser.add_argument('returnType', type=str, choices=['image', 'json']
 
 
 @ns.route('/ask/contain')
-class ObjDetect(Resource):
+class RestfulImpl(Resource):
     @ns.doc(description='''
     Current detection only support one size image
     ( 80 * 80 )
