@@ -109,10 +109,6 @@ class ObjDetect(Resource):
                 car_similarity_param = learn_similar_car_from_videos(num_instances=10, learn_new=False, percentile=p_value_threshold)
 
             ret = percentile_ci(similarity, car_similarity_param)
-            # test_p_value = normal_pdf(similarity, car_similarity_param)
-            print(car_similarity_param)
-            print(similarity)
-            # print(similarity, test_p_value)
             if ret:
                 this_result = ret
             else:
