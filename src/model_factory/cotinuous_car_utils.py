@@ -51,23 +51,32 @@ def get_n_continuous_car_frame_indices(n=30, fps=FPS, shuffle=True, fast_forward
     ts_list = [int(file_name.split('.')[0]) for file_name in file_list]
     counter = 1
     buffer = []
-    multipler = 0
+    multiplier = 0
     is_prev_frame_car = False
     for ts in ts_list:
         start_ts = ts
         while True:
             try:
                 if ts - start_ts > max_frame:
+                    if len(buffer) < 2:
+                        break
+                    counter += 1
+                    yield (buffer[0], buffer[-1])
+                    buffer = []
+                    is_prev_frame_car = False
+                    multiplier = 0
+                    ts += 1
                     break
                 if is_frame_car(ts, frame_to_skip=fps):
                     buffer.append(ts)
                     if is_prev_frame_car:
-                        multipler = min(multipler + 1, multipler_cap)
-                        this_step = min(2 ** multipler, fast_forward_cap_speed)
+                        multiplier = min(multiplier + 1, multipler_cap)
+                        this_step = min(2 ** multiplier, fast_forward_cap_speed)
                         ts += this_step
+                        # print(ts, 2 ** multiplier, this_step)
                     else:
                         is_prev_frame_car = True
-                        multipler = 0
+                        multiplier = 0
                         ts += 1
                 else:
                     if is_prev_frame_car:
@@ -75,7 +84,7 @@ def get_n_continuous_car_frame_indices(n=30, fps=FPS, shuffle=True, fast_forward
                         yield (buffer[0], buffer[-1])
                         buffer = []
                         is_prev_frame_car = False
-                        multipler = 0
+                        multiplier = 0
                         ts += 1
                         break
                     else:
