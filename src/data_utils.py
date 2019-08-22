@@ -114,7 +114,7 @@ class VideoDatabaseAccess(object):
         # because the clip is every 4 secs, i can do mod to extract the file name
 
     def get_closest_file_stream_given_ts(self, ts, h=FRAME_SIZE[0], w=FRAME_SIZE[1], frame_to_skip=FPS,
-                                         y=ATTENTION_COOR[0], x=ATTENTION_COOR[1], normalize=True):
+                                         y=ATTENTION_COOR[0], x=ATTENTION_COOR[1], normalize=True, verbose=0):
         '''
         Throw ValueError if value not available
         :param ts:
@@ -132,11 +132,12 @@ class VideoDatabaseAccess(object):
             raise ValueError('streaming at time stamp %d not available' % (ts))
         file_name = str(ret)+'.ts'
         file_path = os.path.join(DATA_DIR, file_name)
-        print('opening %s for timestamp %d' % (file_path, ts))
+        if verbose == 1:
+            print('opening %s for timestamp %d' % (file_path, ts))
         if not os.path.exists(file_path):
-            print('downloading file %s to %s...' % (file_name, file_path), end='')
+            if verbose == 1:
+                print('downloading file %s to %s...' % (file_name, file_path), end='')
             download_file_given_file_name(file_name)
-            print('done.')
         return open_video(file_path, h=h, w=w, x=x, y=y, normalize=normalize, frame_to_skip=frame_to_skip), ret
 
     def get_frame_given_ts(self, ts, h=FRAME_SIZE[0], w=FRAME_SIZE[1], frame_to_skip=FPS,

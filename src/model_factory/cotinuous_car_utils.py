@@ -29,10 +29,13 @@ def watch_n_random_videos(n=30, max_samples_per_clip=100, fps=FPS, shuffle=True,
         length = right-left
         samples_to_draw = min(length, max_samples_per_clip)
         print(left, right)
+        sample_counter = 0
         l_imgs_ts = np.random.randint(left, right, samples_to_draw)
         r_imgs_ts = np.random.randint(left, right, samples_to_draw)
         try:
             for ts_idx in range(len(l_imgs_ts)):
+                sample_counter += 1
+                print('drawing %d-th sample' % (sample_counter))
                 l_ts = l_imgs_ts[ts_idx]
                 l_t_img = video_handler.get_frame_given_ts(l_ts)
                 l_t_emd = Encoder.predict(np.array([l_t_img]))
@@ -55,6 +58,7 @@ def get_n_continuous_car_frame_indices(n=30, fps=FPS, shuffle=True, fast_forward
     is_prev_frame_car = False
     for ts in ts_list:
         start_ts = ts
+        print('processing %d-th video' % (counter))
         while True:
             try:
                 if ts - start_ts > max_frame:
@@ -136,4 +140,4 @@ def learn_similar_car_from_videos(num_instances=10, fps=24, learn_new=False,
 
 
 if __name__ == "__main__":
-    learn_similar_car_from_videos(num_instances=30, learn_new=True, max_samples_per_clip=100, max_frame=6000)
+    learn_similar_car_from_videos(num_instances=30, learn_new=True, max_samples_per_clip=10, max_frame=6000)
