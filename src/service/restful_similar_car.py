@@ -97,10 +97,10 @@ class ObjDetect(Resource):
             frame_r, downloadable_ts_r = video_handler.get_frame_given_ts(time_stamp_r, h=height, w=width, x=x, y=y,
                                                      get_left_most_file_ts=True, normalize=True)
             embedded_frame_r = Encoder.predict(np.array([frame_r]))
-            # ret_l = car_model.predict(embedded_frame_l)[0]
-            # ret_r = car_model.predict(embedded_frame_r)[0]
-            # ret_l = True if ret_l.lower() == 'true' else False
-            # ret_r = True if ret_r.lower() == 'true' else False
+            ret_l = car_model.predict(embedded_frame_l)[0]
+            ret_r = car_model.predict(embedded_frame_r)[0]
+            ret_l = True if ret_l.lower() == 'true' else False
+            ret_r = True if ret_r.lower() == 'true' else False
 
             similarity = SIMILARITY_METRIC(embedded_frame_l, embedded_frame_r).flatten()[0]
 
@@ -127,13 +127,40 @@ class ObjDetect(Resource):
                                                                                    get_left_most_file_ts=True,
                                                                                    normalize=False)
                 original_frame = np.concatenate((original_frame_l, original_frame_r), axis=1)
-                cv2.putText(original_frame, str(this_result),
-                            bottomLeftCornerOfText,
-                            font,
-                            fontScale,
-                            fontColor,
-                            lineType,
-                            )
+                if (not ret_l ) or (not ret_r):
+                    this_result = 'not a car'
+                    if (not ret_l):
+                        fontScale = 0.5
+                        bottomLeftCornerOfText = (1, 30)
+                        cv2.putText(original_frame, str(this_result),
+                                    bottomLeftCornerOfText,
+                                    font,
+                                    fontScale,
+                                    fontColor,
+                                    lineType,
+                                    )
+                    if (not ret_r):
+                        fontScale = 0.5
+                        bottomLeftCornerOfText = (80, 30)
+                        cv2.putText(original_frame, str(this_result),
+                                    bottomLeftCornerOfText,
+                                    font,
+                                    fontScale,
+                                    fontColor,
+                                    lineType,
+                                    )
+                else:
+                    fontScale = 0.5
+                    bottomLeftCornerOfText = (1, 30)
+                    cv2.putText(original_frame, str(this_result),
+                                bottomLeftCornerOfText,
+                                font,
+                                fontScale,
+                                fontColor,
+                                lineType,
+                                )
+
+
                 image_binary = cv2.imencode('.jpg', original_frame)[1]
                 return send_file(
                     io.BytesIO(image_binary),
