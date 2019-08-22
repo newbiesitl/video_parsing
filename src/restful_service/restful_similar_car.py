@@ -102,6 +102,23 @@ class RestfulImpl(Resource):
             ret_l = True if ret_l.lower() == 'true' else False
             ret_r = True if ret_r.lower() == 'true' else False
 
+            this_result = ''
+            if ret_l is False:
+                this_result += 'frame 1 is not a car '
+            if ret_r is False:
+                this_result += 'frame 2 is not a car '
+            if not ret_l and not ret_r:
+                return make_response(
+                    jsonify(
+                        {
+                            'status': 'success!',
+                            'downloadable ts 1': str(downloadable_ts_l) + '.ts',
+                            'downloadable ts 2': str(downloadable_ts_r) + '.ts',
+                            'result': str(this_result),
+                        },
+                        200
+                    )
+                )
             similarity = SIMILARITY_METRIC(embedded_frame_l, embedded_frame_r).flatten()[0]
 
             global car_similarity_param
