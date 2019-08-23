@@ -97,9 +97,9 @@ class RestfulImpl(Resource):
                             'status': 'success!',
                             'downloadable ts': str(downloadable_ts)+'.ts',
                             'result': this_result
-                        },
-                        200
-                    )
+                        }
+                    ),
+                    200
                 )
 
         except ValueError as e:

@@ -116,8 +116,9 @@ class RestfulImpl(Resource):
                             'downloadable ts 2': str(downloadable_ts_r) + '.ts',
                             'result': str(this_result),
                         },
-                        200
-                    )
+
+                    ),
+                    200
                 )
             similarity = SIMILARITY_METRIC(embedded_frame_l, embedded_frame_r).flatten()[0]
 
@@ -192,9 +193,9 @@ class RestfulImpl(Resource):
                             'right percentile value': car_similarity_param['r_percentile'],
                             'mean': car_similarity_param['mean'],
                             'result': str(this_result),
-                        },
-                        200
-                    )
+                        }
+                    ),
+                    200
                 )
 
         except ValueError as e:
