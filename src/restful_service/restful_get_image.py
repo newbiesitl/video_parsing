@@ -36,7 +36,7 @@ class RestfulImpl(Resource):
             model = model_store.get(target_object, None)
             if model is None:
                 raise ValueError('object type %s is not supported' % target_object)
-            time_stamp = payload.get('timeStamp', MIN_TS)
+            time_stamp = payload.get('ts', MIN_TS)
             x = payload.get('x', 0)
             y = payload.get('y', 0)
             width = payload.get('width', ORIGINAL_FRAME_SIZE[1])

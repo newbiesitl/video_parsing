@@ -32,7 +32,7 @@ class RestfulImpl(Resource):
             model = model_store.get(target_object, None)
             if model is None:
                 raise ValueError('object type %s is not supported' % target_object)
-            time_stamp = payload.get('timeStamp', MIN_TS)
+            time_stamp = payload.get('ts', MIN_TS)
             _, ts = video_handler.get_closest_file_stream_given_ts(time_stamp)
             file_name = str(ts)+'.ts'
             file_path = os.path.join(DATA_DIR, file_name)
