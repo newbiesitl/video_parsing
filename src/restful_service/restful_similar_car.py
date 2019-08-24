@@ -104,9 +104,9 @@ class RestfulImpl(Resource):
 
             this_result = ''
             if ret_l is False:
-                this_result += 'frame 1 is not a car '
+                this_result += 'parking spot free'
             if ret_r is False:
-                this_result += 'frame 2 is not a car '
+                this_result += 'parking spot free'
             if not ret_l and not ret_r:
                 return make_response(
                     jsonify(
@@ -142,7 +142,7 @@ class RestfulImpl(Resource):
                                                                                    normalize=False)
                 original_frame = np.concatenate((original_frame_l, original_frame_r), axis=1)
                 if (not ret_l ) or (not ret_r):
-                    this_result = 'not a car'
+                    this_result = 'parking spot free'
                     if (not ret_l):
                         fontScale = 0.5
                         bottomLeftCornerOfText = (1, 30)
