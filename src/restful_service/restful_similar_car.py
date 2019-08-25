@@ -146,7 +146,8 @@ class RestfulImpl(Resource):
                     if (not ret_l):
                         fontScale = 0.5
                         bottomLeftCornerOfText = (1, 30)
-                        cv2.putText(original_frame, str(this_result),
+                        # cv2.putText(original_frame, str(this_result),
+                        cv2.putText(original_frame, '',
                                     bottomLeftCornerOfText,
                                     font,
                                     fontScale,
@@ -156,7 +157,8 @@ class RestfulImpl(Resource):
                     if (not ret_r):
                         fontScale = 0.5
                         bottomLeftCornerOfText = (80, 30)
-                        cv2.putText(original_frame, str(this_result),
+                        # cv2.putText(original_frame, str(this_result),
+                        cv2.putText(original_frame, '',
                                     bottomLeftCornerOfText,
                                     font,
                                     fontScale,
@@ -166,7 +168,8 @@ class RestfulImpl(Resource):
                 else:
                     fontScale = 0.5
                     bottomLeftCornerOfText = (1, 30)
-                    cv2.putText(original_frame, str(this_result),
+                    # cv2.putText(original_frame, str(this_result),
+                    cv2.putText(original_frame, '',
                                 bottomLeftCornerOfText,
                                 font,
                                 fontScale,
